@@ -28,7 +28,7 @@ res://
 ├── data_types/                   # SCHEMA (นิยาม Resource)
 │   ├── card_data.gd              # class_name CardData
 │   ├── effect_data.gd            # class_name EffectData     (declarative effect)
-│   ├── modifier_data.gd          # class_name ModifierData   (stat pipeline)
+│   ├── modifier_data.gd          # (อาจไม่ต้อง — บัฟ mutate current ผ่าน Stats ดูข้อ 5)
 │   ├── wave_data.gd              # class_name WaveData
 │   └── run_config.gd             # class_name RunConfig      (ตัวเลขสมดุลรวม)
 │
@@ -47,7 +47,7 @@ res://
 │   ├── wave_gen.gd               # สร้างเวฟศัตรูตาม floor + สี
 │   ├── combat.gd                 # tick การต่อสู้
 │   ├── spatial_hash.gd           # หาเป้าเร็ว (สำคัญมาก ดูข้อ 7)
-│   ├── stats.gd                  # คำนวณ stat จริงหลัง level + modifier
+│   ├── stats.gd                  # apply บัฟ mutate current + bake ลง SoA ตอนสปอว์น
 │   ├── rng.gd                    # seeded RNG
 │   └── hooks/                    # hook script เฉพาะการ์ดที่พิเศษจริงๆ
 │       ├── card_hooks.gd         # base class (virtual methods เปล่า)
@@ -61,7 +61,7 @@ res://
 │   │   ├── hand_view.tscn/.gd
 │   │   └── shop_view.tscn/.gd
 │   ├── battle/
-│   │   └── battlefield_view.gd   # วาดยูนิตทั้งหมดใน _draw() ตัวเดียว
+│   │   └── battlefield_view.gd   # MultiMeshInstance2D + SoA (ห้าม Node ต่อยูนิต)
 │   └── ui/  (hud, reward_screen, run_summary)
 │
 ├── autoload/
@@ -101,20 +101,22 @@ enum Kind { SOLDIER, BASE, BUILDING, TURRET, BUFF, TOME }
 @export var splash_radius: float = 0.0
 
 @export_group("Scaling")
-@export var count_per_level: PackedInt32Array = PackedInt32Array([1, 3, 9])
-@export var growth_hp: float = 0.3          # compound: stat × (1+growth)^(lv-1)
+@export var base_count: int = 1             # จำนวนทหารพื้นฐาน (soldier); count = base_count × level
+@export var growth_hp: float = 0.3          # compound %: stat × (1+growth)^(lv-1)
 @export var growth_attack: float = 0.3
 @export var growth_attack_speed: float = 0.1
 
 @export_group("Behavior")
+@export var abilities: Dictionary = {}      # {ability_id: base_stacks} — soldier ability (ดูดเลือด/chain/slow/ระเบิด)
 @export var effects: Array[EffectData] = [] # tier 1: declarative (ไม่ต้องเขียนโค้ด)
 @export var hooks_script: Script            # tier 2: เฉพาะการ์ดที่พิเศษจริงๆ
 
 func is_structure() -> bool:
     return kind == Kind.BASE or kind == Kind.BUILDING or kind == Kind.TURRET
 
-func spawns_units() -> bool:
-    return kind == Kind.SOLDIER or kind == Kind.TURRET or kind == Kind.BASE
+# ลงสนามไหม แยกด้วย stat ไม่ใช่ kind: soldier เสมอ / โครงสร้างที่ยิงได้หรือมี HP (base/turret/กำแพง)
+func goes_to_field() -> bool:
+    return kind == Kind.SOLDIER or attack > 0.0 or max_hp > 0.0
 ```
 
 ### 2.2 Behavior 2 ระดับ — สำคัญที่สุดในไฟล์นี้
@@ -137,6 +139,7 @@ enum Target { SELF, NEIGHBORS_4, DIAGONALS_4, RANDOM_CARD, ALL_CARDS, SAME_COLOR
 @export var value: float = 3.0
 @export var scales_with_level: bool = true   # value × level
 @export var stat_name: StringName = &""      # ใช้เมื่อ action = MODIFY_STAT
+@export var is_percent: bool = true          # MODIFY_STAT: true = ×(1+value) ทบต้น, false = +value flat
 ```
 
 ตัวอย่าง: **ฟาร์ม** = `{END_TURN, GRANT_GOLD, SELF, 3.0, scales=true}` — จบ
@@ -182,11 +185,14 @@ func on_end_turn(state, card, idx) -> void:
 {
     "data_id": &"swordsman",   # ชี้กลับไปยัง CardData
     "level": 1,
-    "attack_mult": 1.0,        # จาก buff/tome
-    "hp_mult": 1.0,
-    "aspd_mult": 1.0,
-    "flat_attack_bonus": 0.0,
-    "no_spawn": false,         # flag ชั่วคราวต่อเทิร์น
+    # stat ตัวเลข: เก็บ "current" ที่ mutate ตามลำดับบัฟ (ถาวร ไม่ถอน → ไม่ต้อง log)
+    "cur_hp": 20.0,            # เริ่ม = base แล้ว ×%/+flat/×growth ตามลำดับที่ได้
+    "cur_attack": 4.0,
+    "cur_aspd": 1.0,           # ตัวคูณความเร็วโจมตี (1.0 = ปกติ)
+    "cur_count": 1,            # จำนวนทหาร (soldier) = base_count × level + บัฟ flat
+    # ability (พฤติกรรม): stack เพิ่มจาก buff card (soldier เท่านั้น)
+    "abilities": {},           # {&"lifesteal": 2, &"chain": 1}
+    "no_spawn": false,         # flag ชั่วคราวต่อเทิร์น (เช่น โดนสังเวย)
 }
 ```
 
@@ -202,13 +208,14 @@ extends RefCounted
 var phase: StringName = &"planning"    # planning / combat / reward / gameover
 var floor_num: int = 1
 var gold: int = 30
+var base_hp: int = 3                    # ชีวิตบ้าน — แพ้เวฟ −1, Boss −3, 0 = จบ Run
 
 var board: Array = []                  # 25 ช่อง: null / &"locked" / card instance Dictionary
 var hand: Array = []
 var shop: Array = []
 
-# combat (ใช้เฉพาะ phase = combat)
-var units: Array = []
+# combat (ใช้เฉพาะ phase = combat, transient — ไม่ต้อง serialize กลางสนาม)
+var units: Array = []                  # backed by Structure-of-Arrays (PackedFloat32Array) เพื่อ perf ~3,000 ตัว
 var projectiles: Array = []
 var combat_time: float = 0.0
 var result: StringName = &""           # "" / "win" / "lose"
@@ -284,18 +291,45 @@ func _process(delta: float) -> void:
 
 ---
 
-## 5. Stats Pipeline (จุดเดียวที่คำนวณ stat จริง)
+## 5. Stat / Buff System — 4 ระบบแยก (อย่ายัดรวมเป็น pipeline เดียว)
 
+**หลักคิด:** บัฟถาวร **ไม่มีวันถอนคืน** → เก็บ `current` แล้ว **mutate ตามลำดับที่ได้** (ไม่ต้อง log)
+สิ่งที่ต้อง "ถอน/รีเซ็ต" (บัฟชั่วคราว) แยกไปเป็น combat-time แทน
+
+**① stat ตัวเลข — mutate current ตามลำดับ** (จุดที่แก้ค่าคือจุดที่บัฟทำงาน ไม่ใช่ตอนอ่าน)
 ```gdscript
-# core/stats.gd
-static func attack_of(card: Dictionary) -> float:
+# core/stats.gd — เรียกตอน "ได้บัฟ" (planning action / on_end_turn) เท่านั้น
+static func apply_pct(card: Dictionary, stat: StringName, pct: float) -> void:
+    card["cur_" + stat] *= (1.0 + pct)      # % ทบต้น
+static func apply_flat(card: Dictionary, stat: StringName, v: float) -> void:
+    card["cur_" + stat] += v                # flat บวก
+static func level_up(card: Dictionary) -> void:
     var d: CardData = Content.card(card.data_id)
-    var lv: int = card.level
-    var base: float = d.attack * pow(1.0 + d.growth_attack, lv - 1)
-    return (base + card.flat_attack_bonus) * card.attack_mult
+    card.level += 1
+    card.cur_hp     *= (1.0 + d.growth_hp)
+    card.cur_attack *= (1.0 + d.growth_attack)
+    card.cur_aspd   *= (1.0 + d.growth_attack_speed)
+    card.cur_count   = d.base_count * card.level + _flat_count(card)  # count = บวกเชิงเส้น
+```
+> **ลำดับมีผล** (`100→×2→+50=250` vs `100→+50→×2=300`) — mutate ตามลำดับที่ได้จริง = รักษาไว้ฟรี
+> ตอนสปอว์น: อ่าน `cur_*` ของแต่ละการ์ด (≤25 ใบ) **bake ลง SoA array ของยูนิต** → combat ใช้เลข bake (เร็ว)
+
+**② ability (พฤติกรรม) — ถุง stack** เก็บใน `card.abilities = {id: stacks}` (soldier เท่านั้น)
+bake ลง unit ตอนสปอว์น → combat hook อ่านไปใช้ (ดูดเลือด = on_hit heal, ระเบิด = on_death) ไม่ยุ่งตัวเลข
+
+**③ บัฟชั่วคราวตอนสู้ — pure function ของเวลา** (ไม่เก็บต่อตัว, จบเวฟหายเอง)
+```gdscript
+# เร่งสปีด: sample ตอนยิงเสร็จ ตอนตั้ง cooldown รอบหน้า
+func _schedule_next_attack(u) -> void:
+    var mult := 1.0
+    if u.speed_stacks > 0:
+        mult = pow(1.0 + 0.01 * u.speed_stacks, floor(state.combat_time))
+    u.attack_timer = u.base_cd / mult       # ตัวช้าไต่ช้า ตัวเร็วพุ่ง (emergent)
 ```
 
-> ห้ามคำนวณ stat ที่อื่นเด็ดขาด — ไม่งั้นจะเจอบั๊ก "ตัวเลขไม่ตรงกันระหว่าง UI กับสนามรบ" แบบ prototype เดิม
+**④ base + growth** — read-only ใน `CardData`
+
+> ห้ามคำนวณ stat ตัวเลขซ้ำที่อื่น — `cur_*` คือแหล่งเดียว ทุกที่ (UI + สนามรบ) อ่านตัวเดียวกัน กัน desync แบบ prototype เดิม
 
 ---
 
@@ -304,32 +338,40 @@ static func attack_of(card: Dictionary) -> float:
 - View **อ่าน** `GameState` แล้ววาด — ห้ามแก้ state เอง
 - Input → สร้าง `action` Dictionary → `GameSim.step()` → `Game.state_changed.emit()` → view refresh
 - **Planning UI** ใช้ Control node (GridContainer 5×5 + TextureButton) — เหมาะกับ UI ที่เป็นตาราง
-- **Battlefield** ใช้ **Node2D ตัวเดียว วาดทุกอย่างใน `_draw()`** (ห้ามสร้าง Node ต่อยูนิต — ดูข้อ 7)
+- **Battlefield** ใช้ **`MultiMeshInstance2D` ต่อชนิด sprite** — วาดหลายพันตัวใน draw call เดียว (GPU) ห้ามสร้าง Node ต่อยูนิต (ดูข้อ 7)
+- **อนิเมชั่น procedural** ไม่ใช้ AnimationPlayer ต่อตัว — คำนวณ per-instance transform:
+  - เดิน = เด้งขึ้นลง (`y_offset = sin(t*ω) * amp`)
+  - ตี = เอียงทั้งตัว ~45° (per-instance `rotation`)
 
 ```gdscript
-func _draw() -> void:
-    for u in Game.state.units:
-        if not u.alive: continue
-        draw_texture(_tex_for(u), Vector2(u.x, u.y) - _half)
-        if u.max_hp > 0.0:
-            draw_rect(Rect2(u.x - 10, u.y - 16, 20 * (u.hp / u.max_hp), 3), Color.GREEN)
+# scenes/battle/battlefield_view.gd — ตั้ง transform ต่อ instance
+func _sync_multimesh(mm: MultiMesh, units: Array) -> void:
+    mm.instance_count = units.size()
+    for i in units.size():
+        var u = units[i]
+        var bob := sin(Game.state.combat_time * 8.0 + u.phase) * 2.0
+        var rot := deg_to_rad(45.0) if u.attacking else 0.0
+        mm.set_instance_transform_2d(i, Transform2D(rot, Vector2(u.x, u.y - bob)))
+# HP bar ของกำแพง/บอส วาดแยกด้วย _draw() (มีน้อยตัว)
 ```
+> เริ่มด้วย top-down (sprite เต็มตัว มองจากบน) → อัปเป็น 2.5D/ไอโซเมตริกทีหลังได้ เพราะ core เก็บแค่ (x,y) ไม่รู้มุมกล้อง
 
 ---
 
-## 7. ⚠️ Performance — ต้องรองรับ 200+ ยูนิต
+## 7. ⚠️ Performance — ต้องรองรับ ~2,000–3,000 ยูนิต
 
-Floor 30 = **219 ศัตรู + ยูนิตเราอีกหลายสิบ** นี่คือข้อจำกัดที่กำหนดสถาปัตยกรรมทั้งหมด
+เป้า: ฝั่งเรา ≤700 + ศัตรูเยอะสุด รวม **~2,000–3,000 ตัว 60 FPS** (GDScript ล้วนไหว ไม่ต้อง GDExtension) — นี่คือข้อจำกัดที่กำหนดสถาปัตยกรรมทั้งหมด
 
-**สามกฎที่ห้ามฝ่าฝืน:**
+**สี่กฎที่ห้ามฝ่าฝืน:**
 
-1. **ห้ามสร้าง Node ต่อ 1 ยูนิต** — 300 Node + script `_process` ต่อตัว = เฟรมตก
-   → ยูนิตเป็น Dictionary ใน array, วาดทั้งหมดด้วย `_draw()` ตัวเดียว
-   → ถ้าเกิน ~800 ตัวค่อยย้ายไป `MultiMeshInstance2D`
+1. **ห้ามสร้าง Node ต่อ 1 ยูนิต** — ใช้ **`MultiMeshInstance2D` ตั้งแต่แรก** (ไม่ใช่ `_draw()` ทีละตัว)
+   → ยูนิตเก็บเป็น **Structure-of-Arrays** (`PackedFloat32Array` แยก x[], y[], hp[]...) ไม่ใช่ object ต่อตัว
+   → sprite เดียวต่อชนิด, transform ต่อ instance (bob/tilt) — ดูข้อ 6
 
-2. **ห้ามหาเป้าแบบ O(n²) ทุก tick** — 300 ยูนิต = 90,000 การเทียบ × 30 tick/วิ = 2.7M/วินาที GDScript ไม่ไหว
-   → ใช้ **spatial hash** (แบ่งสนามเป็นตาราง 64px เทียบเฉพาะช่องข้างเคียง)
+2. **ห้ามหาเป้าแบบ O(n²) ทุก tick** — 3,000 ยูนิต = 9M การเทียบ × 30 tick/วิ GDScript ไม่ไหว
+   → ใช้ **spatial hash** (แบ่งสนามเป็นตาราง ~64px เทียบเฉพาะช่องข้างเคียง)
    → **cache เป้าไว้ ไม่หาใหม่ทุก tick** — หาใหม่ทุก 0.2 วิ หรือเมื่อเป้าตาย
+   → ถ้ายังไม่พอตอนหลัง ค่อยพิจารณา flow-field (ศัตรูไหลเข้าฐาน ไม่หาเป้ารายตัว)
 
 ```gdscript
 # core/combat.gd
@@ -338,9 +380,11 @@ if u.target_id == -1 or not _is_alive(state, u.target_id) or u.retarget_timer <=
     u.retarget_timer = 0.2
 ```
 
-3. **ห้าม allocate array ใหม่ใน loop** — reuse buffer, ใช้ `PackedFloat32Array` ถ้าทำได้
+3. **ห้าม allocate array ใหม่ใน hot loop** — reuse buffer, ใช้ `PackedFloat32Array`
 
-**Benchmark gate:** ก่อนปิด M3 ต้องรัน stress test 300 ยูนิต ให้ได้ **60 FPS บนเครื่อง dev** ถ้าไม่ผ่าน หยุดแล้ว optimize ก่อนไปต่อ
+4. **stat คำนวณต่อการ์ด (≤25) ตอนสปอว์น** แล้ว bake ลง SoA — combat ใช้เลข bake ไม่คำนวณ stat/บัฟ ทุก tick (ดูข้อ 5)
+
+**Benchmark gate:** ก่อนปิด M3 ต้องรัน stress test **~3,000 ยูนิต** ให้ได้ **60 FPS บนเครื่อง dev** ถ้าไม่ผ่าน หยุดแล้ว optimize ก่อนไปต่อ
 
 ---
 
