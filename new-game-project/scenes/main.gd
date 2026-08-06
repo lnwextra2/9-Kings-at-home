@@ -11,7 +11,11 @@ extends Control
 @onready var _result_label: Label = $ResultOverlay/Panel/VBox/ResultLabel
 @onready var _continue: Button = $ResultOverlay/Panel/VBox/ContinueButton
 
-var _selected: int = -1
+const CARD_PANEL := preload("res://scenes/planning/card_panel.tscn")
+
+var _panel: Control
+var _sel_hand: int = -1
+var _sel_slot: int = -1
 var _gameover_pending: bool = false
 
 
@@ -21,20 +25,41 @@ func _ready() -> void:
     _fight.pressed.connect(_on_fight)
     _battle.connect("combat_ended", _on_combat_ended)
     _continue.pressed.connect(_on_continue)
+    _panel = CARD_PANEL.instantiate()
+    _planning.add_child(_panel)
+    _panel.clear()
     _refresh_planning()
     _update_phase()
 
 
 func _on_card_selected(i: int) -> void:
-    _selected = i
+    _sel_hand = i
+    _sel_slot = -1
+    _panel.show_base(Game.state.hand[i])
 
 
 func _on_slot_clicked(idx: int) -> void:
-    if _selected < 0:
+    if _sel_hand >= 0:
+        # โหมดวาง: มีการ์ดในมือถูกเลือก
+        if GameSim.step(Game.state, {"type": &"place_card", "hand_index": _sel_hand, "slot": idx}):
+            _sel_hand = -1
+            _hand.set_selected(-1)
+            _refresh_planning()
+            var placed = Game.state.board[idx]
+            if placed is Dictionary:
+                _panel.show_current(placed)
+            else:
+                _panel.clear()
         return
-    if GameSim.step(Game.state, {"type": &"place_card", "hand_index": _selected, "slot": idx}):
-        _selected = -1
-        _refresh_planning()
+    # โหมดดู: ไม่มีการ์ดในมือ → เลือกการ์ดบนกระดานเพื่อดู current stat
+    _hand.set_selected(-1)
+    var target = Game.state.board[idx]
+    if target is Dictionary:
+        _sel_slot = idx
+        _panel.show_current(target)
+    else:
+        _sel_slot = -1
+        _panel.clear()
 
 
 func _on_fight() -> void:
@@ -53,6 +78,7 @@ func _on_continue() -> void:
     if _gameover_pending:
         _gameover_pending = false
         Game.restart()
+        _reset_selection()
         _refresh_planning()
         _update_phase()
         return
@@ -61,9 +87,17 @@ func _on_continue() -> void:
         _gameover_pending = true
         _result_label.text = "GAME OVER — ไปถึงชั้น %d\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % Game.state.floor_num
         return
-    _selected = -1
+    _reset_selection()
     _refresh_planning()
     _update_phase()
+
+
+func _reset_selection() -> void:
+    _sel_hand = -1
+    _sel_slot = -1
+    _hand.set_selected(-1)
+    if _panel:
+        _panel.clear()
 
 
 func _update_phase() -> void:

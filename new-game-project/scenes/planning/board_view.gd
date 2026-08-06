@@ -42,11 +42,34 @@ func _make_cell(st: GameState, idx: int) -> Button:
         cell.add_theme_stylebox_override(s, sb)
     if occ is Dictionary:
         var d: CardData = Content.card(occ.data_id)
-        cell.text = "%s\nLv%d" % [d.display_name, occ.level]
+        cell.text = d.display_name
+        # ดาวบอก level (กลางด้านล่าง)
+        cell.add_child(_overlay(_stars(int(occ.level)), Vector2(0, cell_size - 18), cell_size, HORIZONTAL_ALIGNMENT_CENTER, 12))
+        # จำนวน current count (มุมขวาบน) — เฉพาะทหาร
+        if d.kind == CardData.Kind.SOLDIER:
+            cell.add_child(_overlay("×%d" % int(occ.cur_count), Vector2(cell_size - 32, 1), 30, HORIZONTAL_ALIGNMENT_RIGHT, 12))
     cell.disabled = locked
     if not locked:
         cell.pressed.connect(_emit_slot.bind(idx))
     return cell
+
+
+func _overlay(text: String, pos: Vector2, w: int, halign: int, fsize: int) -> Label:
+    var l := Label.new()
+    l.text = text
+    l.position = pos
+    l.custom_minimum_size = Vector2(w, 16)
+    l.size = Vector2(w, 16)
+    l.horizontal_alignment = halign
+    l.add_theme_font_size_override("font_size", fsize)
+    l.mouse_filter = Control.MOUSE_FILTER_IGNORE   # คลิกทะลุไปที่ปุ่มช่อง
+    return l
+
+
+## ดาวบอก level: filled = level, ที่เหลือเป็นดาวโปร่ง (cap แสดง 3)
+func _stars(level: int) -> String:
+    var filled: int = clampi(level, 0, 3)
+    return "★".repeat(filled) + "☆".repeat(3 - filled)
 
 
 func _emit_slot(idx: int) -> void:
