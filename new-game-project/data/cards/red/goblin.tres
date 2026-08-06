@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://c9k0goblin0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"goblin"
+display_name = "ก็อบลิน"
+color = &"red"
+kind = 0
+description = "ศัตรูพื้นฐาน (M2) — เดินเข้าตีทหาร/กำแพง แล้วมุ่งเข้าฐาน"
+max_hp = 12.0
+attack = 3.0
+attack_cd = 1.0
+attack_range = 22.0
+move_speed = 55.0
+base_count = 1
+growth_hp = 0.3
+growth_attack = 0.3

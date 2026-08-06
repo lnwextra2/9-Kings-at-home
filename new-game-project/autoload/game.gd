@@ -5,8 +5,10 @@ extends Node
 signal state_changed
 
 const DEFAULT_CONFIG := "res://data/config/default_run.tres"
+const DEFAULT_BATTLE := "res://data/config/default_battle.tres"
 
 var config: RunConfig
+var battle_cfg: BattleConfig
 var state: GameState
 
 
@@ -15,7 +17,12 @@ func _ready() -> void:
     if config == null:
         push_warning("โหลด default_run.tres ไม่ได้ — ใช้ค่า default")
         config = RunConfig.new()
+    battle_cfg = load(DEFAULT_BATTLE) as BattleConfig
+    if battle_cfg == null:
+        push_warning("โหลด default_battle.tres ไม่ได้ — ใช้ค่า default")
+        battle_cfg = BattleConfig.new()
     state = GameState.new_run(config)
+    state.battle_cfg = battle_cfg
     _fill_debug_hand()   # TEMP M1 — แทนด้วยร้าน/รางวัล ตอน M3
 
 

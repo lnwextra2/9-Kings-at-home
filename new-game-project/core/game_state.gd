@@ -12,6 +12,14 @@ var rows: int = 5
 var board: Array = []                  # cols*rows ช่อง: null (ว่าง) / &"locked" / card instance Dictionary
 var hand: Array = []                   # การ์ดในมือ (Array ของ data_id StringName)
 
+# combat (ใช้เฉพาะ phase = combat, transient — ไม่ต้อง serialize กลางสนาม)
+var units: Array = []                  # unit dict (M2); SoA เป็นงาน M3
+var projectiles: Array = []
+var combat_time: float = 0.0
+var result: StringName = &""           # "" / "win" / "lose"
+var base_unit: int = -1                # index ใน units ของฐาน (จุดที่ศัตรูมุ่งเข้าเมื่อทหารเราหมด)
+var battle_cfg: BattleConfig           # config สนามรบ (set โดย Game; Resource ใช้ใน core ได้)
+
 
 ## สร้าง state เริ่มต้นจาก config — วางเลย์เอาต์ช่องปลดล็อก (บล็อกกลาง)
 static func new_run(cfg: RunConfig) -> GameState:

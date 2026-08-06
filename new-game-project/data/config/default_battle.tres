@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BattleConfig" format=3 uid="uid://dak0battle0v"]
+
+[ext_resource type="Script" path="res://data_types/battle_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+width = 1000.0
+height = 560.0
+our_x0 = 120.0
+our_col_dx = 70.0
+our_y0 = 90.0
+our_row_dy = 92.0
+soldier_spread = 18.0
+enemy_x = 940.0
+enemy_y_margin = 40.0
+enemy_spread = 26.0
+base_touch_radius = 28.0
+retarget_interval = 0.2
+projectile_speed = 320.0
