@@ -4,7 +4,7 @@ extends Resource
 
 enum Trigger { END_TURN, ON_DEATH, ON_SPAWN, ON_UPGRADE, ON_KILL }
 enum Action { GRANT_GOLD, MODIFY_STAT, UPGRADE_RANDOM, SPAWN_EXTRA, DAMAGE_AREA }
-enum Target { SELF, NEIGHBORS_4, DIAGONALS_4, RANDOM_CARD, ALL_CARDS, SAME_COLOR }
+enum Target { SELF, NEIGHBORS_4, DIAGONALS_4, RANDOM_CARD, ALL_CARDS, SAME_COLOR, RANDOM_NEIGHBOR }
 
 @export var trigger: Trigger = Trigger.END_TURN
 @export var action: Action = Action.GRANT_GOLD

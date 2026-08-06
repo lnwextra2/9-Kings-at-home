@@ -4,6 +4,22 @@ extends RefCounted
 ## กฎอ้าง kind (เช่น BASE) ได้ แต่ห้ามอ้างชื่อการ์ด (card.id == "...")
 
 
+## index เพื่อนบ้าน 4 ทิศ (บน/ล่าง/ซ้าย/ขวา) ที่อยู่ในกระดาน
+static func neighbors_4(state: GameState, idx: int) -> Array:
+    var col: int = idx % state.cols
+    var row: int = idx / state.cols
+    var out: Array = []
+    if col > 0:
+        out.append(idx - 1)
+    if col < state.cols - 1:
+        out.append(idx + 1)
+    if row > 0:
+        out.append(idx - state.cols)
+    if row < state.rows - 1:
+        out.append(idx + state.cols)
+    return out
+
+
 ## หา slot ของฐานบนกระดาน (-1 = ยังไม่มี)
 static func find_base(state: GameState) -> int:
     for i in state.board.size():

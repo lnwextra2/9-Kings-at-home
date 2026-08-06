@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://c9k0market0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" path="res://data_types/effect_data.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/market.svg" id="3"]
+
+[sub_resource type="Resource" id="eff_gold"]
+script = ExtResource("2")
+trigger = 0
+action = 0
+target = 0
+value = 3.0
+scales_with_level = true
+stat_name = &""
+is_percent = true
+
+[resource]
+script = ExtResource("1")
+id = &"market"
+display_name = "ตลาด"
+sprite = ExtResource("3")
+color = &"blue"
+kind = 2
+description = "สิ่งก่อสร้างซัพพอร์ต — จบเทิร์นให้ทอง 3×level"
+max_hp = 0.0
+attack = 0.0
+attack_range = 0.0
+move_speed = 0.0
+base_count = 1
+effects = Array[EffectData]([SubResource("eff_gold")])
