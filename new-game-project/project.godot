@@ -10,12 +10,19 @@ config_version=5
 
 [application]
 
-config/name="New Game Project"
+config/name="9 Kings at Home"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+run/main_scene="res://scenes/main.tscn"
+
+[autoload]
+
+Game="*res://autoload/game.gd"
 
 [display]
 
+window/size/viewport_width=1280
+window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 

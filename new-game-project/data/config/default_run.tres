@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RunConfig" load_steps=2 format=3 uid="uid://c9k0cfg0v"]
+
+[ext_resource type="Script" path="res://data_types/run_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+board_cols = 5
+board_rows = 5
+unlocked_cols = 3
+unlocked_rows = 3
+start_gold = 30
+base_hp = 3
