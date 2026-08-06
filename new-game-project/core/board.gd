@@ -53,3 +53,35 @@ static func _try_merge(state: GameState, slot: int, data_id: StringName) -> bool
         return false
     Stats.level_up(c)
     return true
+
+
+## ใช้ buff/tome กับการ์ดเป้าหมายบนกระดาน — คืน true ถ้าสำเร็จ
+static func use_card(state: GameState, data_id: StringName, slot: int) -> bool:
+    var d: CardData = Content.card(data_id)
+    if d == null or slot < 0 or slot >= state.board.size():
+        return false
+    var target = state.board[slot]
+    if not (target is Dictionary):
+        return false   # ต้องมีการ์ดเป้าหมาย
+    match d.kind:
+        CardData.Kind.BUFF:
+            var td: CardData = Content.card(target.data_id)
+            if td.kind != CardData.Kind.SOLDIER:
+                return false   # บัฟใช้กับทหารเท่านั้น
+            for k in d.abilities:
+                target.abilities[k] = int(target.abilities.get(k, 0)) + int(d.abilities[k])
+            return true
+        CardData.Kind.TOME:
+            for e in d.effects:
+                _apply_effect(target, e)
+            return true
+    return false
+
+
+static func _apply_effect(card: Dictionary, e: EffectData) -> void:
+    match e.action:
+        EffectData.Action.MODIFY_STAT:
+            if e.is_percent:
+                Stats.apply_pct(card, e.stat_name, e.value)
+            else:
+                Stats.apply_flat(card, e.stat_name, e.value)

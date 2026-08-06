@@ -1,6 +1,17 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0tomes0v"]
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://dak0tomes0v"]
 
 [ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" path="res://data_types/effect_data.gd" id="2"]
+
+[sub_resource type="Resource" id="eff_sharpen"]
+script = ExtResource("2")
+trigger = 0
+action = 1
+target = 0
+value = 0.5
+scales_with_level = false
+stat_name = &"attack"
+is_percent = true
 
 [resource]
 script = ExtResource("1")
@@ -8,8 +19,9 @@ id = &"tome_sharpen"
 display_name = "คัมภีร์ลับคม"
 color = &"blue"
 kind = 5
-description = "คัมภีร์ใช้ครั้งเดียว: +attack ให้การ์ดเป้าหมาย — apply จริง M3"
+description = "คัมภีร์ใช้ครั้งเดียว: +50% attack ให้การ์ดเป้าหมาย"
 max_hp = 0.0
 attack = 0.0
 move_speed = 0.0
 base_count = 1
+effects = Array[EffectData]([SubResource("eff_sharpen")])

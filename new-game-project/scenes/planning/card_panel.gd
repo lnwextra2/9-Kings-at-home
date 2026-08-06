@@ -19,7 +19,7 @@ func show_base(data_id: StringName) -> void:
     if d == null:
         clear()
         return
-    _fill_card(d, -1)
+    _fill_card(d, -1, d.abilities)
     _stats.text = _stat_lines_base(d)
     visible = true
 
@@ -29,26 +29,26 @@ func show_current(card: Dictionary) -> void:
     if d == null:
         clear()
         return
-    _fill_card(d, int(card.level))
+    _fill_card(d, int(card.level), card.abilities)
     _stats.text = _stat_lines_current(card, d)
     visible = true
 
 
-func _fill_card(d: CardData, level: int) -> void:
+func _fill_card(d: CardData, level: int, abilities: Dictionary) -> void:
     var base_col := _color_of(d.color)
     _bg.color = base_col
     _img.color = base_col.darkened(0.4)
     _badge.text = _kind_label(d.kind)
     _name.text = d.display_name if level < 0 else "%s  Lv%d" % [d.display_name, level]
-    _desc.text = _desc_text(d)
+    _desc.text = _desc_text(d, abilities)
 
 
-func _desc_text(d: CardData) -> String:
+func _desc_text(d: CardData, abilities: Dictionary) -> String:
     var s: String = d.description
-    if not d.abilities.is_empty():
+    if not abilities.is_empty():
         s += "\n\n★ สกิลติดตัว:"
-        for k in d.abilities:
-            s += "\n• %s ×%d" % [str(k), int(d.abilities[k])]
+        for k in abilities:
+            s += "\n• %s ×%d" % [str(k), int(abilities[k])]
     return s
 
 

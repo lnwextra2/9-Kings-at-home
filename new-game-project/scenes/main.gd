@@ -40,14 +40,16 @@ func _on_card_selected(i: int) -> void:
 
 func _on_slot_clicked(idx: int) -> void:
     if _sel_hand >= 0:
-        # โหมดวาง: มีการ์ดในมือถูกเลือก
-        if GameSim.step(Game.state, {"type": &"place_card", "hand_index": _sel_hand, "slot": idx}):
+        # มีการ์ดในมือถูกเลือก: buff/tome = ใช้กับการ์ดเป้าหมาย, อื่นๆ = วาง
+        var d: CardData = Content.card(Game.state.hand[_sel_hand])
+        var act: StringName = &"use_card" if (d.kind == CardData.Kind.BUFF or d.kind == CardData.Kind.TOME) else &"place_card"
+        if GameSim.step(Game.state, {"type": act, "hand_index": _sel_hand, "slot": idx}):
             _sel_hand = -1
             _hand.set_selected(-1)
             _refresh_planning()
-            var placed = Game.state.board[idx]
-            if placed is Dictionary:
-                _panel.show_current(placed)
+            var occ = Game.state.board[idx]
+            if occ is Dictionary:
+                _panel.show_current(occ)
             else:
                 _panel.clear()
         return

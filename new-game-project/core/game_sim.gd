@@ -8,8 +8,20 @@ static func step(state: GameState, action: Dictionary) -> bool:
     match action.type:
         &"place_card":
             return _place_card(state, action.hand_index, action.slot)
+        &"use_card":
+            return _use_card(state, action.hand_index, action.slot)
         &"end_turn":
             return _start_combat(state)
+    return false
+
+
+static func _use_card(state: GameState, hand_index: int, slot: int) -> bool:
+    if hand_index < 0 or hand_index >= state.hand.size():
+        return false
+    var data_id: StringName = state.hand[hand_index]
+    if Board.use_card(state, data_id, slot):
+        state.hand.remove_at(hand_index)
+        return true
     return false
 
 
