@@ -26,6 +26,12 @@ func _ready() -> void:
     _fill_debug_hand()   # TEMP M1 — แทนด้วยร้าน/รางวัล ตอน M3
 
 
+func restart() -> void:
+    state = GameState.new_run(config)
+    state.battle_cfg = battle_cfg
+    _fill_debug_hand()
+
+
 func notify_changed() -> void:
     state_changed.emit()
 
