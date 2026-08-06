@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0sword0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"swordsman"
+display_name = "พลดาบ"
+color = &"blue"
+kind = 0
+description = "ทหารประชิด base_count 3 ต่อ level"
+max_hp = 20.0
+attack = 4.0
+attack_cd = 1.0
+attack_range = 22.0
+move_speed = 70.0
+base_count = 3
+growth_hp = 0.3
+growth_attack = 0.3
+growth_attack_speed = 0.1

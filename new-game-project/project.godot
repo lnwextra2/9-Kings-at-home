@@ -17,6 +17,7 @@ run/main_scene="res://scenes/main.tscn"
 
 [autoload]
 
+Content="*res://autoload/content.gd"
 Game="*res://autoload/game.gd"
 
 [display]

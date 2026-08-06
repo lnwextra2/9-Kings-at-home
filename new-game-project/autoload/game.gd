@@ -16,7 +16,17 @@ func _ready() -> void:
         push_warning("โหลด default_run.tres ไม่ได้ — ใช้ค่า default")
         config = RunConfig.new()
     state = GameState.new_run(config)
+    _fill_debug_hand()   # TEMP M1 — แทนด้วยร้าน/รางวัล ตอน M3
 
 
 func notify_changed() -> void:
     state_changed.emit()
+
+
+func _fill_debug_hand() -> void:   # TEMP M1
+    state.hand = [
+        &"base_castle", &"base_castle",
+        &"swordsman", &"swordsman", &"swordsman",
+        &"archer", &"ballista", &"wall", &"farm",
+        &"buff_lifesteal", &"tome_sharpen",
+    ]

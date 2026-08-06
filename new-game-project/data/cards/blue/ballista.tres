@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0balli0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ballista"
+display_name = "หอธนู"
+color = &"blue"
+kind = 3
+description = "ป้อมประจำที่ ยิงไกล ศัตรูตีไม่โดน (untargetable)"
+max_hp = 0.0
+attack = 8.0
+attack_cd = 1.5
+attack_range = 200.0
+move_speed = 0.0
+base_count = 1
+growth_attack = 0.3
+growth_attack_speed = 0.1

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0farm0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"farm"
+display_name = "ฟาร์ม"
+color = &"blue"
+kind = 2
+description = "สิ่งก่อสร้างซัพพอร์ต ไม่ลงสนาม ให้ทองตอนจบเทิร์น (effect wire จริง M3)"
+max_hp = 0.0
+attack = 0.0
+attack_range = 0.0
+move_speed = 0.0
+base_count = 1

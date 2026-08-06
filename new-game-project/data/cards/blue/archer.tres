@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0archer0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"archer"
+display_name = "พลธนู"
+color = &"blue"
+kind = 0
+description = "ทหารระยะไกล ยิง projectile"
+max_hp = 12.0
+attack = 3.0
+attack_cd = 1.2
+attack_range = 140.0
+move_speed = 60.0
+base_count = 2
+growth_hp = 0.3
+growth_attack = 0.3
+growth_attack_speed = 0.1

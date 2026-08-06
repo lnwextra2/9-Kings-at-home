@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0tomes0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"tome_sharpen"
+display_name = "คัมภีร์ลับคม"
+color = &"blue"
+kind = 5
+description = "คัมภีร์ใช้ครั้งเดียว: +attack ให้การ์ดเป้าหมาย — apply จริง M3"
+max_hp = 0.0
+attack = 0.0
+move_speed = 0.0
+base_count = 1
