@@ -37,6 +37,7 @@ static func _place_card(state: GameState, hand_index: int, slot: int) -> bool:
 
 ## จบเทิร์น → เข้าสนามรบ (TurnResolver on_end_turn = M3)
 static func _start_combat(state: GameState) -> bool:
+    TurnResolver.resolve(state)   # ยิง on_end_turn (ฟาร์มให้ทอง ฯลฯ) ก่อนสปอว์น
     var cfg: BattleConfig = state.battle_cfg
     state.units = Spawner.spawn_player(state, cfg)
     state.units.append_array(WaveGen.make_wave(state, cfg))
