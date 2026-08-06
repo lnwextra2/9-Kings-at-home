@@ -1,5 +1,9 @@
 extends Control
-## ตัวสลับ phase — planning (วางการ์ด) ↔ combat (สนามรบ) + ผลแพ้/ชนะ
+## ตัวสลับ phase — planning (วาง+ร้าน) ↔ combat (สนามรบ) ↔ reward ↔ gameover
+
+const CARD_PANEL := preload("res://scenes/planning/card_panel.tscn")
+const SHOP_VIEW := preload("res://scenes/planning/shop_view.tscn")
+const REWARD_VIEW := preload("res://scenes/planning/reward_view.tscn")
 
 @onready var _top: Label = $TopBar
 @onready var _planning: Control = $Planning
@@ -11,12 +15,11 @@ extends Control
 @onready var _result_label: Label = $ResultOverlay/Panel/VBox/ResultLabel
 @onready var _continue: Button = $ResultOverlay/Panel/VBox/ContinueButton
 
-const CARD_PANEL := preload("res://scenes/planning/card_panel.tscn")
-
 var _panel: Control
+var _shop
+var _reward
 var _sel_hand: int = -1
 var _sel_slot: int = -1
-var _gameover_pending: bool = false
 
 
 func _ready() -> void:
@@ -24,14 +27,24 @@ func _ready() -> void:
     _board.connect("slot_clicked", _on_slot_clicked)
     _fight.pressed.connect(_on_fight)
     _battle.connect("combat_ended", _on_combat_ended)
-    _continue.pressed.connect(_on_continue)
+    _continue.pressed.connect(_on_gameover_continue)
     _panel = CARD_PANEL.instantiate()
     _planning.add_child(_panel)
     _panel.clear()
+    _shop = SHOP_VIEW.instantiate()
+    _planning.add_child(_shop)
+    _shop.connect("buy", _on_buy)
+    _shop.connect("reroll_pressed", _on_shop_reroll)
+    _reward = REWARD_VIEW.instantiate()
+    add_child(_reward)
+    _reward.visible = false
+    _reward.connect("picked", _on_reward_pick)
+    _reward.connect("reroll_pressed", _on_reward_reroll)
     _refresh_planning()
     _update_phase()
 
 
+# --- planning: place / inspect ---
 func _on_card_selected(i: int) -> void:
     _sel_hand = i
     _sel_slot = -1
@@ -40,7 +53,6 @@ func _on_card_selected(i: int) -> void:
 
 func _on_slot_clicked(idx: int) -> void:
     if _sel_hand >= 0:
-        # มีการ์ดในมือถูกเลือก: buff/tome = ใช้กับการ์ดเป้าหมาย, อื่นๆ = วาง
         var d: CardData = Content.card(Game.state.hand[_sel_hand])
         var act: StringName = &"use_card" if (d.kind == CardData.Kind.BUFF or d.kind == CardData.Kind.TOME) else &"place_card"
         if GameSim.step(Game.state, {"type": act, "hand_index": _sel_hand, "slot": idx}):
@@ -53,7 +65,6 @@ func _on_slot_clicked(idx: int) -> void:
             else:
                 _panel.clear()
         return
-    # โหมดดู: ไม่มีการ์ดในมือ → เลือกการ์ดบนกระดานเพื่อดู current stat
     _hand.set_selected(-1)
     var target = Game.state.board[idx]
     if target is Dictionary:
@@ -64,6 +75,18 @@ func _on_slot_clicked(idx: int) -> void:
         _panel.clear()
 
 
+# --- shop ---
+func _on_buy(index: int) -> void:
+    if GameSim.step(Game.state, {"type": &"buy", "shop_index": index}):
+        _refresh_planning()
+
+
+func _on_shop_reroll() -> void:
+    if GameSim.step(Game.state, {"type": &"reroll_shop"}):
+        _refresh_planning()
+
+
+# --- combat ---
 func _on_fight() -> void:
     GameSim.step(Game.state, {"type": &"end_turn"})
     _battle.start()
@@ -71,27 +94,58 @@ func _on_fight() -> void:
 
 
 func _on_combat_ended() -> void:
-    var r: StringName = Game.state.result
-    _result_label.text = "ชนะเวฟ! 🎉" if r == &"win" else "แพ้เวฟ — บ้าน −1 HP"
-    _overlay.visible = true
+    GameSim.end_combat(Game.state)
+    _battle.visible = false
+    if Game.state.phase == &"gameover":
+        _result_label.text = "GAME OVER — ไปถึงชั้น %d\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % Game.state.floor_num
+        _overlay.visible = true
+    else:
+        _reward.refresh()
+        _reward.visible = true
+    _update_top()
 
 
-func _on_continue() -> void:
-    if _gameover_pending:
-        _gameover_pending = false
-        Game.restart()
+# --- reward ---
+func _on_reward_pick(index: int) -> void:
+    if GameSim.step(Game.state, {"type": &"pick_reward", "index": index}):
+        _reward.visible = false
         _reset_selection()
         _refresh_planning()
         _update_phase()
-        return
-    GameSim.end_combat(Game.state)
-    if Game.state.phase == &"gameover":
-        _gameover_pending = true
-        _result_label.text = "GAME OVER — ไปถึงชั้น %d\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % Game.state.floor_num
-        return
+
+
+func _on_reward_reroll() -> void:
+    if GameSim.step(Game.state, {"type": &"reroll_reward"}):
+        _reward.refresh()
+
+
+# --- gameover ---
+func _on_gameover_continue() -> void:
+    Game.restart()
+    _overlay.visible = false
     _reset_selection()
     _refresh_planning()
     _update_phase()
+
+
+# --- shared ---
+func _update_phase() -> void:
+    var ph: StringName = Game.state.phase
+    _planning.visible = ph == &"planning"
+    _battle.visible = ph == &"combat"
+    if ph != &"reward":
+        _reward.visible = false
+    if ph != &"gameover":
+        _overlay.visible = false
+    _update_top()
+
+
+func _refresh_planning() -> void:
+    _board.refresh()
+    _hand.refresh()
+    _fight.disabled = Board.find_base(Game.state) == -1   # บังคับวางฐานก่อนรบ
+    _shop.refresh()
+    _update_top()
 
 
 func _reset_selection() -> void:
@@ -102,26 +156,13 @@ func _reset_selection() -> void:
         _panel.clear()
 
 
-func _update_phase() -> void:
-    var ph: StringName = Game.state.phase
-    _planning.visible = ph == &"planning"
-    _battle.visible = ph == &"combat"
-    _overlay.visible = false
-    _update_top()
-
-
-func _refresh_planning() -> void:
-    _board.refresh()
-    _hand.refresh()
-    _fight.disabled = Board.find_base(Game.state) == -1   # บังคับวางฐานก่อนเริ่มรบ
-    _update_top()
-
-
 func _update_top() -> void:
     var st: GameState = Game.state
     var ph: String = "วางแผน"
     if st.phase == &"combat":
         ph = "สู้!"
+    elif st.phase == &"reward":
+        ph = "รางวัล"
     elif st.phase == &"gameover":
         ph = "จบเกม"
     _top.text = "ชั้น %d  ·  gold %d  ·  HP %d  ·  [%s]" % [st.floor_num, st.gold, st.base_hp, ph]

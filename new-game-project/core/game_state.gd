@@ -11,6 +11,13 @@ var cols: int = 5
 var rows: int = 5
 var board: Array = []                  # cols*rows ช่อง: null (ว่าง) / &"locked" / card instance Dictionary
 var hand: Array = []                   # การ์ดในมือ (Array ของ data_id StringName)
+var shop: Array = []                   # ร้าน: data_id / &"" (ช่องซื้อไปแล้ว)
+
+# reward (ใช้เฉพาะ phase = reward)
+var reward_cards: Array = []           # ตัวเลือกรางวัล (data_id)
+var reward_reroll_cost: int = 10       # reset ทุกหน้า reward
+
+var rng: Rng                           # สุ่มทั้งหมดผ่านตัวนี้
 
 # combat (ใช้เฉพาะ phase = combat, transient — ไม่ต้อง serialize กลางสนาม)
 var units: Array = []                  # unit dict (M2); SoA เป็นงาน M3
@@ -24,6 +31,7 @@ var battle_cfg: BattleConfig           # config สนามรบ (set โด�
 ## สร้าง state เริ่มต้นจาก config — วางเลย์เอาต์ช่องปลดล็อก (บล็อกกลาง)
 static func new_run(cfg: RunConfig) -> GameState:
 	var s := GameState.new()
+	s.rng = Rng.new()
 	s.cols = cfg.board_cols
 	s.rows = cfg.board_rows
 	s.gold = cfg.start_gold

@@ -23,23 +23,20 @@ func _ready() -> void:
         battle_cfg = BattleConfig.new()
     state = GameState.new_run(config)
     state.battle_cfg = battle_cfg
-    _fill_debug_hand()   # TEMP M1 — แทนด้วยร้าน/รางวัล ตอน M3
+    _start_run()
 
 
 func restart() -> void:
     state = GameState.new_run(config)
     state.battle_cfg = battle_cfg
-    _fill_debug_hand()
+    _start_run()
 
 
 func notify_changed() -> void:
     state_changed.emit()
 
 
-func _fill_debug_hand() -> void:   # TEMP M1
-    state.hand = [
-        &"base_castle", &"base_castle",
-        &"swordsman", &"swordsman", &"swordsman",
-        &"archer", &"ballista", &"wall", &"farm",
-        &"buff_lifesteal", &"tome_sharpen",
-    ]
+## เริ่ม run: มือมีการ์ดฐาน (บังคับวาง wave 0) + สุ่มร้าน
+func _start_run() -> void:
+    state.hand = [&"base_castle"]
+    Shop.roll(state)

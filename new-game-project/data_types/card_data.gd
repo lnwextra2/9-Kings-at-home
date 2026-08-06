@@ -32,6 +32,9 @@ enum Kind { SOLDIER, BASE, BUILDING, TURRET, BUFF, TOME }
 @export var effects: Array[EffectData] = []   # tier 1 declarative
 @export var hooks_script: Script          # tier 2 script (การ์ดที่พิเศษจริงๆ)
 
+@export_group("Economy")
+@export var cost: int = 4                 # ราคาในร้าน
+
 
 func is_structure() -> bool:
     return kind == Kind.BASE or kind == Kind.BUILDING or kind == Kind.TURRET

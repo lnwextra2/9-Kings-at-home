@@ -12,6 +12,14 @@ static func step(state: GameState, action: Dictionary) -> bool:
             return _use_card(state, action.hand_index, action.slot)
         &"end_turn":
             return _start_combat(state)
+        &"buy":
+            return Shop.buy(state, action.shop_index)
+        &"reroll_shop":
+            return Shop.reroll(state)
+        &"pick_reward":
+            return _pick_reward(state, action.index)
+        &"reroll_reward":
+            return _reroll_reward(state)
     return false
 
 
@@ -67,5 +75,37 @@ static func end_combat(state: GameState) -> void:
     if state.base_hp <= 0:
         state.phase = &"gameover"
     else:
-        state.floor_num += 1
-        state.phase = &"planning"
+        _roll_reward(state)
+        state.phase = &"reward"
+
+
+static func _roll_reward(state: GameState) -> void:
+    var p: Array = Shop.pool()
+    state.reward_cards = []
+    for i in 3:
+        state.reward_cards.append(state.rng.pick(p).id)
+    state.reward_reroll_cost = 10
+
+
+## เลือกรางวัล 1 ใบ → เข้ามือ, floor+1, สุ่มร้านใหม่, กลับ planning
+static func _pick_reward(state: GameState, index: int) -> bool:
+    if index < 0 or index >= state.reward_cards.size():
+        return false
+    state.hand.append(state.reward_cards[index])
+    state.reward_cards = []
+    state.floor_num += 1
+    Shop.roll(state)
+    state.phase = &"planning"
+    return true
+
+
+static func _reroll_reward(state: GameState) -> bool:
+    if state.gold < state.reward_reroll_cost:
+        return false
+    state.gold -= state.reward_reroll_cost
+    state.reward_reroll_cost += 10
+    var p: Array = Shop.pool()
+    state.reward_cards = []
+    for i in 3:
+        state.reward_cards.append(state.rng.pick(p).id)
+    return true
