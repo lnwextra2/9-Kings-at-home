@@ -1,18 +1,19 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0bufls0v"]
 
-[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://b3c553s8svub4" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://cv4ownguf8vtj" path="res://data_types/effect_data.gd" id="1_cs8tj"]
+[ext_resource type="Texture2D" uid="uid://0hwtbhh4adxn" path="res://assets/sprites/buff_lifesteal.svg" id="2"]
 
 [resource]
 script = ExtResource("1")
 id = &"buff_lifesteal"
 display_name = "เขี้ยวดูดเลือด"
-color = &"blue"
+sprite = ExtResource("2")
 kind = 4
-description = "บัฟถาวร ใช้กับทหาร: เพิ่ม ability ดูดเลือด (stack ได้) — apply จริง M3"
+description = "บัฟถาวร ใช้กับทหาร: เพิ่ม ability ดูดเลือด (stack ได้)"
 max_hp = 0.0
 attack = 0.0
 move_speed = 0.0
-base_count = 1
 abilities = {
 &"lifesteal": 1
 }

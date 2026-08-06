@@ -1,11 +1,13 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0balli0v"]
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://dak0balli0v"]
 
 [ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ballista.svg" id="2"]
 
 [resource]
 script = ExtResource("1")
 id = &"ballista"
 display_name = "หอธนู"
+sprite = ExtResource("2")
 color = &"blue"
 kind = 3
 description = "ป้อมประจำที่ ยิงไกล ศัตรูตีไม่โดน (untargetable)"

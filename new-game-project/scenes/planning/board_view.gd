@@ -42,7 +42,10 @@ func _make_cell(st: GameState, idx: int) -> Button:
         cell.add_theme_stylebox_override(s, sb)
     if occ is Dictionary:
         var d: CardData = Content.card(occ.data_id)
-        cell.text = d.display_name
+        if d.sprite != null:
+            cell.add_child(_sprite_rect(d.sprite))   # รูปกลางช่อง
+        else:
+            cell.text = d.display_name
         # ดาวบอก level (กลางด้านล่าง)
         cell.add_child(_overlay(_stars(int(occ.level)), Vector2(0, cell_size - 18), cell_size, HORIZONTAL_ALIGNMENT_CENTER, 12))
         # จำนวน current count (มุมขวาบน) — เฉพาะทหาร
@@ -52,6 +55,18 @@ func _make_cell(st: GameState, idx: int) -> Button:
     if not locked:
         cell.pressed.connect(_emit_slot.bind(idx))
     return cell
+
+
+func _sprite_rect(tex: Texture2D) -> TextureRect:
+    var tr := TextureRect.new()
+    tr.texture = tex
+    tr.position = Vector2(6, 2)
+    tr.size = Vector2(cell_size - 12, cell_size - 20)   # เว้นล่างไว้ให้ดาว
+    tr.custom_minimum_size = tr.size
+    tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    tr.mouse_filter = Control.MOUSE_FILTER_IGNORE   # คลิกทะลุไปที่ปุ่มช่อง
+    return tr
 
 
 func _overlay(text: String, pos: Vector2, w: int, halign: int, fsize: int) -> Label:

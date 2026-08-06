@@ -9,6 +9,19 @@ extends Control
 @onready var _desc: Label = $Card/Desc
 @onready var _stats: Label = $Stats
 
+var _portrait: TextureRect
+
+
+func _ready() -> void:
+    _portrait = TextureRect.new()
+    _portrait.position = _img.position
+    _portrait.size = _img.size
+    _portrait.custom_minimum_size = _img.size
+    _portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    _portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    _portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _img.get_parent().add_child(_portrait)
+
 
 func clear() -> void:
     visible = false
@@ -38,6 +51,7 @@ func _fill_card(d: CardData, level: int, abilities: Dictionary) -> void:
     var base_col := _color_of(d.color)
     _bg.color = base_col
     _img.color = base_col.darkened(0.4)
+    _portrait.texture = d.sprite
     _badge.text = _kind_label(d.kind)
     _name.text = d.display_name if level < 0 else "%s  Lv%d" % [d.display_name, level]
     _desc.text = _desc_text(d, abilities)

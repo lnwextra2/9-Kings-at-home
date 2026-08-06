@@ -7,7 +7,8 @@ enum Kind { SOLDIER, BASE, BUILDING, TURRET, BUFF, TOME }
 @export_group("Identity")
 @export var id: StringName
 @export var display_name: String = ""
-@export var icon: Texture2D
+@export var icon: Texture2D               # รูปการ์ด (UI) — ยังไม่ใช้
+@export var sprite: Texture2D             # โมเดลในสนามรบ (ว่าง = วาดสี่เหลี่ยม fallback)
 @export var color: StringName = &"blue"   # blue/red/mint/gold/gray/green/purple/orange/indigo/rainbow
 @export var kind: Kind = Kind.SOLDIER
 @export_multiline var description: String = ""

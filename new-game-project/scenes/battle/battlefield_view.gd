@@ -68,15 +68,24 @@ func _draw_unit(u: Dictionary, t: float) -> void:
     elif u.kind == CardData.Kind.BUILDING or u.kind == CardData.Kind.TURRET:
         r = 10.0
     var ang: float = deg_to_rad(45.0) if u.attacking else 0.0
-    draw_set_transform(pos, ang, Vector2.ONE)
-    draw_rect(Rect2(-r, -r, r * 2.0, r * 2.0), _color_for(u))
-    draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+    var d: CardData = Content.card(u.data_id)
+    if d.sprite != null:
+        var ts: Vector2 = d.sprite.get_size()
+        var sc: float = (r * 2.4) / maxf(ts.x, ts.y)
+        draw_set_transform(pos, ang, Vector2(sc, sc))
+        draw_texture(d.sprite, -ts * 0.5)   # ศัตรูใช้รูปเดียวกับเรา ไม่ tint (แยกที่ HP bar)
+        draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+    else:
+        draw_set_transform(pos, ang, Vector2.ONE)
+        draw_rect(Rect2(-r, -r, r * 2.0, r * 2.0), _color_for(u))
+        draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
     if u.max_hp > 0.0:
         var w: float = 18.0
         var f: float = clampf(u.hp / u.max_hp, 0.0, 1.0)
         var bar_y: float = pos.y - r - 7.0
+        var hp_col: Color = Color(0.3, 0.9, 0.35) if u.team == 0 else Color(0.9, 0.3, 0.3)   # เรา=เขียว ศัตรู=แดง
         draw_rect(Rect2(pos.x - w * 0.5, bar_y, w, 3.0), Color(0, 0, 0, 0.6))
-        draw_rect(Rect2(pos.x - w * 0.5, bar_y, w * f, 3.0), Color(0.3, 0.9, 0.35))
+        draw_rect(Rect2(pos.x - w * 0.5, bar_y, w * f, 3.0), hp_col)
 
 
 func _color_for(u: Dictionary) -> Color:

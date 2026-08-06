@@ -1,16 +1,17 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0farm0v"]
 
-[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://b3c553s8svub4" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" uid="uid://cv4ownguf8vtj" path="res://data_types/effect_data.gd" id="1_4fatl"]
+[ext_resource type="Texture2D" uid="uid://dtg8sa3vnxw55" path="res://assets/sprites/farm.svg" id="2"]
 
 [resource]
 script = ExtResource("1")
 id = &"farm"
 display_name = "ฟาร์ม"
-color = &"blue"
+sprite = ExtResource("2")
 kind = 2
 description = "สิ่งก่อสร้างซัพพอร์ต ไม่ลงสนาม ให้ทองตอนจบเทิร์น (effect wire จริง M3)"
 max_hp = 0.0
 attack = 0.0
 attack_range = 0.0
 move_speed = 0.0
-base_count = 1
