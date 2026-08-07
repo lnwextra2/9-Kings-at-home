@@ -17,7 +17,9 @@ func _ready() -> void:
 
 
 func refresh() -> void:
+    # remove_child ทันที (queue_free ลบสิ้นเฟรม → get_child(idx) หลัง refresh จะได้ cell เก่าที่กำลังถูกลบ)
     for ch in _grid.get_children():
+        _grid.remove_child(ch)
         ch.queue_free()
     var st: GameState = Game.state
     _grid.columns = st.cols
