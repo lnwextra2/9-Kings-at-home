@@ -22,6 +22,8 @@ static func step(state: GameState, action: Dictionary) -> bool:
             return _pick_reward(state, action.index)
         &"reroll_reward":
             return _reroll_reward(state)
+        &"reroll_color":
+            return _reroll_color(state)
         &"dbg_give":
             state.hand.append(action.data_id)
             return true
@@ -119,7 +121,7 @@ static func end_combat(state: GameState) -> void:
 
 
 static func _roll_reward(state: GameState) -> void:
-    var p: Array = Shop.pool()
+    var p: Array = _reward_pool(state)
     state.reward_cards = []
     for i in 3:
         state.reward_cards.append(state.rng.pick(p).id)
@@ -133,8 +135,27 @@ static func _pick_reward(state: GameState, index: int) -> bool:
     state.hand.append(state.reward_cards[index])
     state.reward_cards = []
     state.floor_num += 1
+    state.wave_color = WaveGen.roll_color(state.rng)   # สุ่มสีศัตรู floor ถัดไป
     Shop.roll(state)
     state.phase = &"planning"
+    return true
+
+
+## reward pool = การ์ดสีเดียวกับศัตรูที่เพิ่งสู้ (fallback ร้าน)
+static func _reward_pool(state: GameState) -> Array:
+    var p: Array = Content.by_color(state.wave_color)
+    if p.is_empty():
+        p = Shop.pool()
+    return p
+
+
+## รีโรลสีศัตรู — แพงขึ้นถาวรครั้งละ 10g
+static func _reroll_color(state: GameState) -> bool:
+    if state.gold < state.enemy_reroll_cost:
+        return false
+    state.gold -= state.enemy_reroll_cost
+    state.enemy_reroll_cost += 10
+    state.wave_color = WaveGen.roll_color(state.rng)
     return true
 
 
@@ -143,7 +164,7 @@ static func _reroll_reward(state: GameState) -> bool:
         return false
     state.gold -= state.reward_reroll_cost
     state.reward_reroll_cost += 10
-    var p: Array = Shop.pool()
+    var p: Array = _reward_pool(state)
     state.reward_cards = []
     for i in 3:
         state.reward_cards.append(state.rng.pick(p).id)

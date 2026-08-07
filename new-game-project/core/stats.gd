@@ -20,6 +20,19 @@ static func make_instance(data_id: StringName) -> Dictionary:
     }
 
 
+## สร้าง instance ที่ level กำหนด (ไม่ cap — สำหรับศัตรู): stat = base × (1+growth)^(lv-1)
+static func make_instance_at(data_id: StringName, level: int) -> Dictionary:
+    var d: CardData = Content.card(data_id)
+    var inst := make_instance(data_id)
+    inst.level = level
+    var g: float = float(level - 1)
+    inst.cur_hp = d.max_hp * pow(1.0 + d.growth_hp, g)
+    inst.cur_attack = d.attack * pow(1.0 + d.growth_attack, g)
+    inst.cur_aspd = pow(1.0 + d.growth_attack_speed, g)
+    inst.cur_count = d.base_count * level
+    return inst
+
+
 ## อัปเลเวล: hp/atk/aspd โต compound %, count (soldier) บวกเชิงเส้น
 static func level_up(card: Dictionary) -> void:
     if card.level >= 3:
