@@ -13,6 +13,7 @@ static func tick(state: GameState, dt: float) -> void:
     var units: Array = state.units
     state.combat_time += dt
     var touched_base := false
+    var hash := SpatialHash.build(units, cfg.hash_cell)
 
     for i in units.size():
         var u: Dictionary = units[i]
@@ -26,7 +27,7 @@ static func tick(state: GameState, dt: float) -> void:
 
         # หาเป้าใหม่เมื่อ: ไม่มีเป้า / เป้าตายหรือไม่ valid / ครบรอบ retarget
         if u.target_id == -1 or not _valid_target(units, u.target_id, u.team) or u.retarget_timer <= 0.0:
-            u.target_id = _find_target(units, i)
+            u.target_id = hash.nearest_enemy(units, u)
             u.retarget_timer = cfg.retarget_interval
 
         var tid: int = u.target_id
@@ -55,24 +56,6 @@ static func _valid_target(units: Array, tid: int, team: int) -> bool:
         return false
     var t: Dictionary = units[tid]
     return t.alive and t.targetable and t.team != team
-
-
-## หาเป้าที่ตีได้ (targetable) ฝ่ายตรงข้ามที่ใกล้สุด — brute force (M2)
-static func _find_target(units: Array, i: int) -> int:
-    var u: Dictionary = units[i]
-    var best := -1
-    var best_d: float = INF
-    for j in units.size():
-        var o: Dictionary = units[j]
-        if not o.alive or not o.targetable or o.team == u.team:
-            continue
-        var dx: float = o.x - u.x
-        var dy: float = o.y - u.y
-        var d2: float = dx * dx + dy * dy
-        if d2 < best_d:
-            best_d = d2
-            best = j
-    return best
 
 
 static func _move_toward(u: Dictionary, dx: float, dy: float, dist: float, dt: float) -> void:

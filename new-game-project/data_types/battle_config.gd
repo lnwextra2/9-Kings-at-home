@@ -23,3 +23,4 @@ extends Resource
 @export var retarget_interval: float = 0.2
 @export var projectile_speed: float = 320.0
 @export var ranged_min_range: float = 60.0    # attack_range เกินนี้ = ยิง projectile (ranged)
+@export var hash_cell: float = 64.0           # ขนาด cell ของ spatial hash (หาเป้า)
