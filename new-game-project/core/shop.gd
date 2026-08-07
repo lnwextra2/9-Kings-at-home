@@ -6,13 +6,9 @@ const SLOTS := 4
 const REROLL_COST := 2
 
 
-## pool ที่ขาย (สีฟ้า placeholder ชั่วคราว) — เว้นฐาน (ไม่ขายในร้าน)
+## pool ที่ขาย (สีฟ้า placeholder ชั่วคราว; M4 อาจอิงสี/floor)
 static func pool() -> Array:
-    var out: Array = []
-    for d in Content.by_color(&"blue"):
-        if d.kind != CardData.Kind.BASE:
-            out.append(d)
-    return out
+    return Content.by_color(&"blue")
 
 
 static func roll(state: GameState) -> void:

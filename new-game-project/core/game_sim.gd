@@ -212,10 +212,7 @@ static func _roll_reward(state: GameState) -> void:
 
 
 static func _reward_pool(state: GameState) -> Array:
-    var p: Array = []
-    for d in Content.by_color(state.wave_color):
-        if d.kind != CardData.Kind.BASE:   # ฐานไม่โผล่เป็นรางวัล
-            p.append(d)
+    var p: Array = Content.by_color(state.wave_color)
     if p.is_empty():
         p = Shop.pool()
     return p
