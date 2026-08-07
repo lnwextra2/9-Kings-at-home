@@ -79,12 +79,25 @@ static func _sell_card(state: GameState, hand_index: int) -> bool:
     if hand_index < 0 or hand_index >= state.hand.size():
         return false
     var d: CardData = Content.card(state.hand[hand_index])
-    if d != null and d.kind == CardData.Kind.BASE:
-        return false   # ฐานขายไม่ได้ (เป็นแกนหลัก — กันขายแล้วเล่นต่อไม่ได้)
+    if d != null and d.kind == CardData.Kind.BASE and not _has_base_besides(state, hand_index):
+        return false   # กันขายฐานใบสุดท้าย (ยังไม่มีฐานบนกระดาน/ในมือใบอื่น) → เล่นต่อไม่ได้
     state.hand.remove_at(hand_index)
     state.gold += state.sell_value
     state.gold_earned += state.sell_value
     return true
+
+
+## ยังมีฐานอื่นอยู่ไหม (บนกระดาน หรือในมือใบอื่น) — สำหรับกันขายฐานใบสุดท้าย
+static func _has_base_besides(state: GameState, hand_index: int) -> bool:
+    if Board.find_base(state) != -1:
+        return true
+    for i in state.hand.size():
+        if i == hand_index:
+            continue
+        var d: CardData = Content.card(state.hand[i])
+        if d != null and d.kind == CardData.Kind.BASE:
+            return true
+    return false
 
 
 static func _use_card(state: GameState, hand_index: int, slot: int) -> bool:
@@ -199,7 +212,10 @@ static func _roll_reward(state: GameState) -> void:
 
 
 static func _reward_pool(state: GameState) -> Array:
-    var p: Array = Content.by_color(state.wave_color)
+    var p: Array = []
+    for d in Content.by_color(state.wave_color):
+        if d.kind != CardData.Kind.BASE:   # ฐานไม่โผล่เป็นรางวัล
+            p.append(d)
     if p.is_empty():
         p = Shop.pool()
     return p
