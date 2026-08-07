@@ -4,7 +4,7 @@ extends Node2D
 ## HP bar / projectile / ขอบสนาม / วงฐาน วาดใน _draw() (มีน้อย/เบา)
 signal combat_ended
 
-@export var field_origin: Vector2 = Vector2(140.0, 88.0)
+@export var field_origin: Vector2 = Vector2(20.0, 60.0)
 @export var unit_radius: float = 7.0
 @export var bob_amp: float = 3.0
 @export var bob_speed: float = 8.0
