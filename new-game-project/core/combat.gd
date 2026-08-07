@@ -113,6 +113,9 @@ static func _deal(state: GameState, team: int, x: float, y: float, dmg: float, s
     if splash <= 0.0:
         var t: Dictionary = state.units[tid]
         if t.alive:
+            if t.block > 0:
+                t.block -= 1   # เกราะกำบัง: กันดาเมจเต็มครั้ง
+                return
             t.hp -= dmg
             if team == 0:   # เราตีศัตรู → ปล่อยเลขดาเมจให้ view วาด
                 state.damage_events.append({"x": t.x, "y": t.y, "amount": dmg})
@@ -122,6 +125,9 @@ static func _deal(state: GameState, team: int, x: float, y: float, dmg: float, s
             var dx: float = o.x - x
             var dy: float = o.y - y
             if dx * dx + dy * dy <= splash * splash:
+                if o.block > 0:
+                    o.block -= 1   # เกราะกำบัง: กัน AoE เต็มครั้ง
+                    continue
                 o.hp -= dmg
                 if team == 0:
                     state.damage_events.append({"x": o.x, "y": o.y, "amount": dmg})

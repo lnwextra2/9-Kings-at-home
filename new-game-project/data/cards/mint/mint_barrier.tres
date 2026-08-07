@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=2 format=3 uid="uid://mint0barrier0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mint_barrier"
+display_name = "เกราะกำบัง"
+color = &"mint"
+kind = 4
+description = "บัฟถาวร: ทหารเป้าหมายกันดาเมจได้ +1 ครั้ง/ตัว (สะสม stack ได้)"
+max_hp = 0.0
+attack = 0.0
+move_speed = 0.0
+base_count = 1
+abilities = {
+&"block": 1
+}
+cost = 4

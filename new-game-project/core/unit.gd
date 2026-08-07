@@ -11,6 +11,7 @@ static func from_instance(team: int, inst: Dictionary, x: float, y: float) -> Di
     u.max_hp = inst.cur_hp
     u.attack = inst.cur_attack
     u.crit = inst.cur_crit
+    u.block = int(inst.abilities.get(&"block", 0))   # เกราะกำบัง: กันดาเมจ N ครั้ง
     u.attack_cd = d.attack_cd / maxf(inst.cur_aspd, 0.01)   # aspd_mult ย่น cooldown
     if u.immobile and u.attack > 0.0:
         u.attack_range = 1.0e9   # ป้อม/ฐาน (อยู่กับที่ + โจมตี) = ยิงทั้งสนาม
@@ -61,6 +62,7 @@ static func _blank(team: int, d: CardData, x: float, y: float) -> Dictionary:
         "hp": 0.0, "max_hp": 0.0,
         "attack": 0.0,
         "crit": 0.0,
+        "block": 0,               # จำนวนครั้งที่กันดาเมจได้ (เกราะกำบัง)
         "attack_cd": 1.0,
         "attack_range": d.attack_range,
         "move_speed": d.move_speed,
