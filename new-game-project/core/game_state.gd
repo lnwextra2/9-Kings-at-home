@@ -5,7 +5,7 @@ extends RefCounted
 var phase: StringName = &"planning"   # planning / combat / reward / gameover
 var floor_num: int = 1
 var wave_color: StringName = &"blue"   # สีศัตรูเวฟนี้ (ศัตรูใช้การ์ดผู้เล่นสีนี้)
-var wave_track: Array = []             # สีเวฟวางแผนล่วงหน้าต่อ floor (index = floor-1) — แถบสถานี
+var wave_track: Array = []             # สถานีวางแผนล่วงหน้า: {type, color} ต่อ floor (index = floor-1)
 var enemy_reroll_cost: int = 10        # รีโรลสีศัตรู (แพงขึ้นถาวร)
 var gold: int = 30
 var gold_earned: int = 0               # ทองสะสมทั้ง run (สำหรับหน้าสรุป)
@@ -19,9 +19,14 @@ var board: Array = []                  # cols*rows ช่อง: null (ว่า
 var hand: Array = []                   # การ์ดในมือ (Array ของ data_id StringName)
 var shop: Array = []                   # ร้าน: data_id / &"" (ช่องซื้อไปแล้ว)
 
-# reward (ใช้เฉพาะ phase = reward)
+# reward (legacy — ยังไม่ลบ เผื่อใช้; flow ใหม่ใช้สถานี shop/blessing แทน)
 var reward_cards: Array = []           # ตัวเลือกรางวัล (data_id)
 var reward_reroll_cost: int = 10       # reset ทุกหน้า reward
+
+# blessing station (เลือก 1 พร, stack ได้)
+var blessings: Dictionary = {}         # {blessing_id: stacks} — global run modifier
+var blessing_choices: Array = []       # ตัวเลือกพรที่สถานีนี้ (blessing_id)
+var blessing_reroll_cost: int = 10     # รีโรลพร (+10 ถาวร)
 
 var rng: Rng                           # สุ่มทั้งหมดผ่านตัวนี้
 
@@ -40,8 +45,8 @@ var battle_cfg: BattleConfig           # config สนามรบ (set โด�
 static func new_run(cfg: RunConfig) -> GameState:
 	var s := GameState.new()
 	s.rng = Rng.new()
-	WaveGen.ensure_track(s, s.floor_num)            # วางแผนสีเวฟล่วงหน้า (แถบสถานี)
-	s.wave_color = s.wave_track[s.floor_num - 1]
+	WaveGen.ensure_track(s, s.floor_num)            # วางแผนสถานีล่วงหน้า (แถบสถานี)
+	s.wave_color = s.wave_track[s.floor_num - 1].color
 	s.cols = cfg.board_cols
 	s.rows = cfg.board_rows
 	s.gold = cfg.start_gold

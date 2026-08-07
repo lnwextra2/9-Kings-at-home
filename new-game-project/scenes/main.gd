@@ -9,12 +9,13 @@ extends Control
 @onready var _fight: Button = $Planning/FightButton
 @onready var _color_btn: Button = $Planning/ColorButton
 @onready var _panel = $Planning/CardPanel
-@onready var _shop = $Planning/ShopView
+@onready var _shop = $ShopView
+@onready var _shop_continue: Button = $ShopContinue
+@onready var _blessing = $BlessingView
 @onready var _sell_zone = $Planning/SellZone
 @onready var _station = $StationBar
 @onready var _battle = $Battlefield
 @onready var _devbtn: Button = $DevButton
-@onready var _reward = $RewardView
 @onready var _debug = $DebugView
 @onready var _overlay: Control = $ResultOverlay
 @onready var _result_label: Label = $ResultOverlay/Panel/VBox/ResultLabel
@@ -42,9 +43,9 @@ func _ready() -> void:
     _panel.clear()
     _shop.connect("buy", _on_buy)
     _shop.connect("reroll_pressed", _on_shop_reroll)
-    _reward.connect("picked", _on_reward_pick)
-    _reward.connect("reroll_pressed", _on_reward_reroll)
-    _reward.visible = false
+    _shop_continue.pressed.connect(_on_shop_continue)
+    _blessing.connect("picked", _on_blessing_pick)
+    _blessing.connect("reroll_pressed", _on_blessing_reroll)
     _debug.connect("give_card", _on_dbg_give)
     _debug.connect("give_gold", _on_dbg_gold)
     _debug.connect("skip_floor", _on_dbg_skip)
@@ -221,15 +222,25 @@ func _on_sell() -> void:
         _refresh_planning()
 
 
-# --- shop ---
+# --- shop station ---
 func _on_buy(index: int) -> void:
     if GameSim.step(Game.state, {"type": &"buy", "shop_index": index}):
-        _refresh_planning()
+        _shop.refresh()
+        _hand.refresh()
+        _update_top()
 
 
 func _on_shop_reroll() -> void:
     if GameSim.step(Game.state, {"type": &"reroll_shop"}):
+        _shop.refresh()
+        _update_top()
+
+
+func _on_shop_continue() -> void:
+    if GameSim.step(Game.state, {"type": &"shop_continue"}):
+        _reset_selection()
         _refresh_planning()
+        _update_phase()
 
 
 # --- combat ---
@@ -279,33 +290,28 @@ func _begin_combat() -> void:
 
 
 func _on_combat_ended() -> void:
-    GameSim.end_combat(Game.state)
+    GameSim.end_combat(Game.state)   # ตั้ง phase ถัดไป (สถานีถัดไป / gameover / won)
     _battle.visible = false
-    if Game.state.phase == &"gameover":
-        var st: GameState = Game.state
-        _result_label.text = "GAME OVER\nไปถึงชั้น %d    ฆ่าศัตรู %d    ทองสะสม %d\n\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % [st.floor_num, st.kills, st.gold_earned]
-        _overlay.visible = true
-    else:
-        _reward.refresh()
-        _reward.visible = true
-    _update_top()
+    _reset_selection()
+    _refresh_planning()
+    _update_phase()
 
 
-# --- reward ---
-func _on_reward_pick(index: int) -> void:
-    if GameSim.step(Game.state, {"type": &"pick_reward", "index": index}):
-        _reward.visible = false
+# --- blessing station ---
+func _on_blessing_pick(index: int) -> void:
+    if GameSim.step(Game.state, {"type": &"pick_blessing", "index": index}):
         _reset_selection()
         _refresh_planning()
         _update_phase()
 
 
-func _on_reward_reroll() -> void:
-    if GameSim.step(Game.state, {"type": &"reroll_reward"}):
-        _reward.refresh()
+func _on_blessing_reroll() -> void:
+    if GameSim.step(Game.state, {"type": &"reroll_blessing"}):
+        _blessing.refresh()
+        _update_top()
 
 
-# --- gameover ---
+# --- gameover / won ---
 func _on_gameover_continue() -> void:
     Game.restart()
     _overlay.visible = false
@@ -319,10 +325,20 @@ func _update_phase() -> void:
     var ph: StringName = Game.state.phase
     _planning.visible = ph == &"planning"
     _battle.visible = ph == &"combat"
-    if ph != &"reward":
-        _reward.visible = false
-    if ph != &"gameover":
-        _overlay.visible = false
+    _shop.visible = ph == &"shop"
+    _shop_continue.visible = ph == &"shop"
+    _blessing.visible = ph == &"blessing"
+    if ph == &"shop":
+        _shop.refresh()
+    elif ph == &"blessing":
+        _blessing.refresh()
+    _overlay.visible = ph == &"gameover" or ph == &"won"
+    if ph == &"gameover":
+        var st: GameState = Game.state
+        _result_label.text = "GAME OVER\nไปถึงชั้น %d    ฆ่าศัตรู %d    ทองสะสม %d\n\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % [st.floor_num, st.kills, st.gold_earned]
+    elif ph == &"won":
+        var st2: GameState = Game.state
+        _result_label.text = "🏆 ชนะแล้ว!\nพิชิตบอสเวฟ 30    ฆ่าศัตรู %d    ทองสะสม %d\n\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % [st2.kills, st2.gold_earned]
     _update_top()
 
 
@@ -330,7 +346,6 @@ func _refresh_planning() -> void:
     _board.refresh()
     _hand.refresh()
     _fight.disabled = Board.find_base(Game.state) == -1   # บังคับวางฐานก่อนรบ
-    _shop.refresh()
     _update_top()
 
 
@@ -344,13 +359,15 @@ func _reset_selection() -> void:
 func _update_top() -> void:
     var st: GameState = Game.state
     var ph: String = "วางแผน"
-    if st.phase == &"combat":
-        ph = "สู้!"
-    elif st.phase == &"reward":
-        ph = "รางวัล"
-    elif st.phase == &"gameover":
-        ph = "จบเกม"
+    match st.phase:
+        &"combat": ph = "สู้!"
+        &"shop": ph = "ร้านค้า"
+        &"blessing": ph = "พร"
+        &"gameover": ph = "จบเกม"
+        &"won": ph = "ชนะ!"
     _top.text = "ชั้น %d  ·  gold %d  ·  HP %d  ·  [%s]" % [st.floor_num, st.gold, st.base_hp, ph]
+    # ปุ่มรีโรลสีศัตรู เฉพาะสถานี combat/planning เท่านั้น
+    _color_btn.visible = st.phase == &"planning"
     _color_btn.text = "ศัตรูเวฟนี้: สี%s   ·   รีโรล %dg" % [_color_name(st.wave_color), st.enemy_reroll_cost]
     _color_btn.disabled = st.gold < st.enemy_reroll_cost
     _color_sb.bg_color = _wave_btn_color(st.wave_color)

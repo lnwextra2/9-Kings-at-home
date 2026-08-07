@@ -47,14 +47,16 @@ func _draw() -> void:
 		var center := Vector2(cx, cy)
 		var is_cur: bool = f == cur
 		var is_past: bool = f < cur
-		var boss: bool = WaveGen.is_boss_floor(f)
+		var typ: StringName = _station_type(st, f)
+		var boss: bool = typ == &"boss"
 
-		var fill: Color = _wave_color_of(_track_color(st, f))
+		var fill: Color = _type_fill(st, f, typ)
 		if is_past:
 			fill = fill.darkened(0.55)
 			fill.a = 0.75
-		var r: float = node_radius + (3.0 if is_cur else 0.0)
+		var r: float = node_radius + (3.0 if is_cur else 0.0) + (2.0 if boss else 0.0)
 		draw_circle(center, r, fill)
+		_draw_marker(center, typ)   # ไอคอนบอกชนิดสถานี (รูปทรง ไม่ใช่ glyph)
 
 		var ring: Color = ring_normal
 		var rw: float = 2.0
@@ -63,8 +65,6 @@ func _draw() -> void:
 		elif boss:
 			ring = ring_boss; rw = 2.5
 		draw_arc(center, r, 0.0, TAU, 28, ring, rw)
-		if boss:   # จุดบอสตรงกลาง (เลี่ยง glyph ★ ที่ font อาจไม่มี)
-			draw_circle(center, 3.0, ring_boss)
 
 		# หมายเลข floor ใต้สถานี
 		var num_col: Color = Color(0.92, 0.92, 0.96) if not is_past else Color(0.6, 0.6, 0.66)
@@ -72,11 +72,34 @@ func _draw() -> void:
 			HORIZONTAL_ALIGNMENT_CENTER, 28.0, 12, num_col)
 
 
-func _track_color(st: GameState, f: int) -> StringName:
+## ไอคอนกลางสถานี: ร้าน=สี่เหลี่ยม, พร=ข้าวหลามตัด, บอส=จุด, สู้=ว่าง
+func _draw_marker(c: Vector2, typ: StringName) -> void:
+	var ink := Color(1, 1, 1, 0.9)
+	match typ:
+		&"shop":
+			draw_rect(Rect2(c - Vector2(4.0, 4.0), Vector2(8.0, 8.0)), ink)
+		&"blessing":
+			draw_colored_polygon(PackedVector2Array([
+				c + Vector2(0, -6), c + Vector2(5, 0), c + Vector2(0, 6), c + Vector2(-5, 0)]), ink)
+		&"boss":
+			draw_circle(c, 3.5, Color(1, 0.85, 0.3))
+
+
+func _station_type(st: GameState, f: int) -> StringName:
 	var i: int = f - 1
 	if i >= 0 and i < st.wave_track.size():
-		return st.wave_track[i]
-	return &"?"
+		return st.wave_track[i].type
+	return WaveGen.station_type(f)
+
+
+## สีวงกลม: combat/boss = สีเวฟ, shop = ทอง, blessing = ม่วง
+func _type_fill(st: GameState, f: int, typ: StringName) -> Color:
+	match typ:
+		&"shop": return Color(0.72, 0.58, 0.22)
+		&"blessing": return Color(0.50, 0.36, 0.70)
+	var i: int = f - 1
+	var col: StringName = st.wave_track[i].color if (i >= 0 and i < st.wave_track.size()) else &"?"
+	return _wave_color_of(col)
 
 
 ## palette เดียวกับที่อื่น (ถ้าจะรวมเป็น config ที่เดียวค่อยทำภายหลัง)

@@ -8,8 +8,9 @@
 [ext_resource type="PackedScene" uid="uid://b3e547tcs46b0" path="res://scenes/planning/shop_view.tscn" id="6"]
 [ext_resource type="PackedScene" uid="uid://cvcabes3ea6ad" path="res://scenes/planning/reward_view.tscn" id="7"]
 [ext_resource type="PackedScene" uid="uid://j64e1657e70n" path="res://scenes/planning/debug_view.tscn" id="8"]
-[ext_resource type="Script" path="res://scenes/planning/sell_zone.gd" id="9"]
-[ext_resource type="Script" path="res://scenes/planning/station_bar.gd" id="10"]
+[ext_resource type="Script" uid="uid://ccerf52rmia2d" path="res://scenes/planning/sell_zone.gd" id="9"]
+[ext_resource type="Script" uid="uid://bumdk6pa5p6dn" path="res://scenes/planning/station_bar.gd" id="10"]
+[ext_resource type="Script" path="res://scenes/planning/blessing_view.gd" id="11"]
 
 [node name="Main" type="Control" unique_id=1355908067]
 layout_mode = 3
@@ -39,11 +40,6 @@ layout_mode = 1
 layout_mode = 1
 
 [node name="CardPanel" parent="Planning" unique_id=2088957359 instance=ExtResource("5")]
-
-[node name="ShopView" parent="Planning" unique_id=1721216757 instance=ExtResource("6")]
-anchors_preset = 5
-offset_top = 0.0
-offset_bottom = 134.0
 
 [node name="FightButton" type="Button" parent="Planning" unique_id=1488184177]
 layout_mode = 1
@@ -75,7 +71,7 @@ grow_horizontal = 0
 grow_vertical = 0
 text = "ศัตรูเวฟ"
 
-[node name="SellZone" type="Panel" parent="Planning"]
+[node name="SellZone" type="Panel" parent="Planning" unique_id=301647861]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -87,7 +83,7 @@ offset_bottom = -24.0
 grow_vertical = 0
 script = ExtResource("9")
 
-[node name="StationBar" type="Control" parent="."]
+[node name="StationBar" type="Control" parent="." unique_id=277476993]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -95,6 +91,42 @@ offset_top = 40.0
 offset_bottom = 96.0
 grow_horizontal = 2
 script = ExtResource("10")
+
+[node name="ShopView" parent="." instance=ExtResource("6")]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 150.0
+offset_right = 300.0
+offset_bottom = 300.0
+grow_horizontal = 2
+
+[node name="ShopContinue" type="Button" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -90.0
+offset_top = -120.0
+offset_right = 90.0
+offset_bottom = -76.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "ไปต่อ ▶"
+
+[node name="BlessingView" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("11")
 
 [node name="TopBar" type="Label" parent="." unique_id=1510625430]
 layout_mode = 1

@@ -35,19 +35,33 @@ static func roll_color(rng: Rng) -> StringName:
     return cols[rng.randi_range(0, cols.size() - 1)]
 
 
-const TRACK_LOOKAHEAD := 6   # วางแผนสีเวฟล่วงหน้ากี่ floor (พอให้แถบสถานีมองไปข้างหน้าได้)
+const TRACK_LOOKAHEAD := 6   # วางแผนสถานีล่วงหน้ากี่ floor
+const BOSS_FLOOR := 30       # เวฟ 30 = บอส, ชนะ = จบเกม
+
+
+## ชนิดสถานีของ floor — fix ลำดับ: combat → shop → blessing วน; floor 30 = boss
+static func station_type(floor_num: int) -> StringName:
+    if floor_num == BOSS_FLOOR:
+        return &"boss"
+    match (floor_num - 1) % 3:
+        0: return &"combat"
+        1: return &"shop"
+        _: return &"blessing"
 
 
 ## ต่อ wave_track ให้ครอบคลุมถึง floor นี้ + lookahead (เรียกจาก sim เท่านั้น — ใช้ rng)
+## entry = {type, color} ; color มีความหมายเฉพาะ combat/boss
 static func ensure_track(state: GameState, upto_floor: int) -> void:
     var need: int = upto_floor + TRACK_LOOKAHEAD
     while state.wave_track.size() < need:
-        state.wave_track.append(roll_color(state.rng))
+        var f: int = state.wave_track.size() + 1
+        var t: StringName = station_type(f)
+        var col: StringName = roll_color(state.rng) if (t == &"combat" or t == &"boss") else &""
+        state.wave_track.append({"type": t, "color": col})
 
 
-## floor นี้เป็นบอสไหม (ตอนนี้ใช้โชว์ไอคอนแถบสถานีอย่างเดียว — กลไกบอส = M5)
 static func is_boss_floor(floor_num: int) -> bool:
-    return floor_num % 5 == 0
+    return floor_num == BOSS_FLOOR
 
 
 static func _pool(color: StringName) -> Array:

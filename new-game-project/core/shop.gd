@@ -20,6 +20,11 @@ static func roll(state: GameState) -> void:
         state.shop.append(state.rng.pick(p).id)
 
 
+## ราคาจริงหลังพรลดราคา (ปัดลง)
+static func price(state: GameState, d: CardData) -> int:
+    return int(round(d.cost * Blessing.shop_price_mult(state)))
+
+
 static func buy(state: GameState, index: int) -> bool:
     if index < 0 or index >= state.shop.size():
         return false
@@ -27,9 +32,10 @@ static func buy(state: GameState, index: int) -> bool:
     if not (data_id is StringName) or data_id == &"":
         return false
     var d: CardData = Content.card(data_id)
-    if state.gold < d.cost:
+    var cost: int = price(state, d)   # พร ลดราคาร้าน
+    if state.gold < cost:
         return false
-    state.gold -= d.cost
+    state.gold -= cost
     state.hand.append(data_id)
     state.shop[index] = &""   # ช่องว่างหลังซื้อ
     return true

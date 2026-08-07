@@ -18,7 +18,7 @@ static func spawn_player(state: GameState, cfg: BattleConfig) -> Array:
         if not d.goes_to_field():
             continue
         if d.kind == CardData.Kind.SOLDIER:
-            for n in int(c.cur_count):
+            for n in int(c.cur_count) + Blessing.count_add(state):   # พร +count ทุกเวฟ
                 soldiers.append(c)
         elif d.kind == CardData.Kind.BUILDING and d.max_hp > 0.0:
             wall_hp += float(c.cur_hp)   # กำแพง — รวม HP ทุกใบ
@@ -29,7 +29,23 @@ static func spawn_player(state: GameState, cfg: BattleConfig) -> Array:
     _place_formation(out, soldiers, cfg)
     if wall_hp > 0.0:
         out.append(Unit.make_wall(wall_hp, cfg.wall_x, cfg.height * 0.5))
+    _apply_blessings(state, out)
     return out
+
+
+## พร global: +dmg/crit ทุกยูนิตที่ตี, +hp เฉพาะทหาร (ฝั่งเราเท่านั้น — ศัตรูไม่ได้)
+static func _apply_blessings(state: GameState, out: Array) -> void:
+    var dm: float = Blessing.dmg_mult(state)
+    var ca: float = Blessing.crit_add(state)
+    var hm: float = Blessing.hp_mult(state)
+    for u in out:
+        if u.attack > 0.0:
+            u.attack *= dm
+        if ca > 0.0:
+            u.crit = minf(u.crit + ca, 1.0)
+        if u.kind == CardData.Kind.SOLDIER and hm != 1.0:
+            u.hp *= hm
+            u.max_hp *= hm
 
 
 static func _place_formation(out: Array, soldiers: Array, cfg: BattleConfig) -> void:

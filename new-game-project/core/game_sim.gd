@@ -23,10 +23,15 @@ static func step(state: GameState, action: Dictionary) -> bool:
             return Shop.buy(state, action.shop_index)
         &"reroll_shop":
             return Shop.reroll(state)
-        &"pick_reward":
-            return _pick_reward(state, action.index)
-        &"reroll_reward":
-            return _reroll_reward(state)
+        &"shop_continue":
+            if state.phase != &"shop":
+                return false
+            _advance_station(state)
+            return true
+        &"pick_blessing":
+            return _pick_blessing(state, action.index)
+        &"reroll_blessing":
+            return _reroll_blessing(state)
         &"reroll_color":
             return _reroll_color(state)
         &"dbg_give":
@@ -40,7 +45,7 @@ static func step(state: GameState, action: Dictionary) -> bool:
         &"dbg_skip_floor":
             state.floor_num += int(action.get("amount", 1))
             WaveGen.ensure_track(state, state.floor_num)
-            state.wave_color = state.wave_track[state.floor_num - 1]
+            _enter_station(state)
             return true
         &"dbg_spawn_enemies":
             _dbg_spawn_enemies(state, int(action.get("count", 20)))
@@ -121,8 +126,8 @@ static func _find_base_unit(state: GameState) -> int:
     return -1
 
 
-## จบการรบ (view เรียกเมื่อ state.result != "") — M2: แพ้ −1 HP แล้วไป floor ถัดไป
-## (reward/ร้าน = M3, boss −3 = M5)
+## จบการรบ (view เรียกเมื่อ state.result != "") — แพ้ −1 HP; แล้วไปสถานีถัดไป
+## บอส (floor 30): ชนะ = จบเกม (ชนะ), แพ้ = เล่นบอสใหม่
 static func end_combat(state: GameState) -> void:
     if state.result == &"lose":
         state.base_hp -= 1
@@ -131,59 +136,67 @@ static func end_combat(state: GameState) -> void:
     state.base_unit = -1
     if state.base_hp <= 0:
         state.phase = &"gameover"
-    else:
-        _roll_reward(state)
-        state.phase = &"reward"
+        return
+    if WaveGen.is_boss_floor(state.floor_num):
+        if state.result == &"win":
+            state.phase = &"won"       # ชนะบอส = ชนะเกม
+        else:
+            _enter_station(state)      # แพ้บอส (ยังมี HP) → เล่นบอสใหม่
+        return
+    _advance_station(state)            # เวฟปกติ ชนะ/แพ้ก็ไปสถานีถัดไป
 
 
-static func _roll_reward(state: GameState) -> void:
-    var p: Array = _reward_pool(state)
-    state.reward_cards = []
-    for i in 3:
-        state.reward_cards.append(state.rng.pick(p).id)
-    state.reward_reroll_cost = 10
+## เข้าสถานีปัจจุบัน — ตั้ง phase ตามชนิดสถานี
+static func _enter_station(state: GameState) -> void:
+    match WaveGen.station_type(state.floor_num):
+        &"shop":
+            Shop.roll(state)
+            state.phase = &"shop"
+        &"blessing":
+            state.blessing_choices = Blessing.roll_choices(state, 3)
+            state.blessing_reroll_cost = 10
+            state.phase = &"blessing"
+        _:   # combat / boss
+            state.wave_color = state.wave_track[state.floor_num - 1].color
+            var g: int = Blessing.gold_per_wave(state)   # พร: +ทองทุกเวฟ
+            if g > 0:
+                state.gold += g
+                state.gold_earned += g
+            state.phase = &"planning"
 
 
-## เลือกรางวัล 1 ใบ → เข้ามือ, floor+1, สุ่มร้านใหม่, กลับ planning
-static func _pick_reward(state: GameState, index: int) -> bool:
-    if index < 0 or index >= state.reward_cards.size():
-        return false
-    state.hand.append(state.reward_cards[index])
-    state.reward_cards = []
+## ไปสถานีถัดไป (floor+1) แล้วเข้าสถานีนั้น
+static func _advance_station(state: GameState) -> void:
     state.floor_num += 1
-    WaveGen.ensure_track(state, state.floor_num)       # วางแผนสีล่วงหน้าให้พอ
-    state.wave_color = state.wave_track[state.floor_num - 1]   # ใช้สีที่วางแผนไว้ (ตรงกับที่โชว์บนแถบ)
-    Shop.roll(state)
-    state.phase = &"planning"
+    WaveGen.ensure_track(state, state.floor_num)
+    _enter_station(state)
+
+
+## เลือกพร 1 อัน (stack) → ไปสถานีถัดไป
+static func _pick_blessing(state: GameState, index: int) -> bool:
+    if state.phase != &"blessing" or index < 0 or index >= state.blessing_choices.size():
+        return false
+    Blessing.pick(state, state.blessing_choices[index])
+    state.blessing_choices = []
+    _advance_station(state)
     return true
 
 
-## reward pool = การ์ดสีเดียวกับศัตรูที่เพิ่งสู้ (fallback ร้าน)
-static func _reward_pool(state: GameState) -> Array:
-    var p: Array = Content.by_color(state.wave_color)
-    if p.is_empty():
-        p = Shop.pool()
-    return p
+static func _reroll_blessing(state: GameState) -> bool:
+    if state.gold < state.blessing_reroll_cost:
+        return false
+    state.gold -= state.blessing_reroll_cost
+    state.blessing_reroll_cost += 10
+    state.blessing_choices = Blessing.roll_choices(state, 3)
+    return true
 
 
-## รีโรลสีศัตรู — แพงขึ้นถาวรครั้งละ 10g
+## รีโรลสีศัตรู — แพงขึ้นถาวรครั้งละ 10g (เฉพาะสถานี combat)
 static func _reroll_color(state: GameState) -> bool:
     if state.gold < state.enemy_reroll_cost:
         return false
     state.gold -= state.enemy_reroll_cost
     state.enemy_reroll_cost += 10
     state.wave_color = WaveGen.roll_color(state.rng)
-    state.wave_track[state.floor_num - 1] = state.wave_color   # อัพเดตสถานีปัจจุบันบนแถบ
-    return true
-
-
-static func _reroll_reward(state: GameState) -> bool:
-    if state.gold < state.reward_reroll_cost:
-        return false
-    state.gold -= state.reward_reroll_cost
-    state.reward_reroll_cost += 10
-    var p: Array = _reward_pool(state)
-    state.reward_cards = []
-    for i in 3:
-        state.reward_cards.append(state.rng.pick(p).id)
+    state.wave_track[state.floor_num - 1]["color"] = state.wave_color   # อัพเดตสถานีปัจจุบัน
     return true
