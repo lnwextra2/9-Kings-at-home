@@ -65,6 +65,16 @@ static func new_run(cfg: RunConfig) -> GameState:
 			var unlocked: bool = c >= mx and c < mx + cfg.unlocked_cols \
 				and r >= my and r < my + cfg.unlocked_rows
 			s.board[r * s.cols + c] = null if unlocked else &"locked"
+
+	# มือเริ่มต้น: ฐาน (บังคับวาง wave 0) + สุ่มทหาร start_cards ใบ
+	s.hand = [&"base_castle"]
+	var pool: Array = []
+	for d in Content.all():
+		if d.kind == CardData.Kind.SOLDIER and d.id != WaveGen.ENEMY_ID:   # เว้นการ์ดศัตรู debug
+			pool.append(d.id)
+	if not pool.is_empty():
+		for i in cfg.start_cards:
+			s.hand.append(pool[s.rng.randi_range(0, pool.size() - 1)])
 	return s
 
 

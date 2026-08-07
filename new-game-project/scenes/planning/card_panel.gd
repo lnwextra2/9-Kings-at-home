@@ -47,7 +47,7 @@ func show_base(data_id: StringName) -> void:
     _fill_card(d, -1, d.abilities)
     _stats.text = _stat_lines_base(d)
     _sell.text = "ขาย (%dg)" % Game.state.sell_value
-    _sell.visible = true
+    _sell.visible = d.kind != CardData.Kind.BASE   # ฐานขายไม่ได้
     visible = true
 
 

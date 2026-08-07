@@ -78,6 +78,9 @@ static func _sell_card(state: GameState, hand_index: int) -> bool:
         return false
     if hand_index < 0 or hand_index >= state.hand.size():
         return false
+    var d: CardData = Content.card(state.hand[hand_index])
+    if d != null and d.kind == CardData.Kind.BASE:
+        return false   # ฐานขายไม่ได้ (เป็นแกนหลัก — กันขายแล้วเล่นต่อไม่ได้)
     state.hand.remove_at(hand_index)
     state.gold += state.sell_value
     state.gold_earned += state.sell_value

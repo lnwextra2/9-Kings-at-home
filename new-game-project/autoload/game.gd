@@ -36,7 +36,6 @@ func notify_changed() -> void:
     state_changed.emit()
 
 
-## เริ่ม run: มือมีการ์ดฐาน (บังคับวาง wave 0) + สุ่มร้าน
+## เริ่ม run — มือ (ฐาน + ทหารเริ่มต้น) ตั้งใน GameState.new_run แล้ว
 func _start_run() -> void:
-    state.hand = [&"base_castle"]
-    Shop.roll(state)
+    pass
