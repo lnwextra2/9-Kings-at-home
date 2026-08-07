@@ -32,12 +32,9 @@ static func desc_of(id: StringName) -> String:
 	return ""
 
 
-## สุ่มตัวเลือกพร n อัน (ซ้ำได้ = stack ของเดิม)
-static func roll_choices(state: GameState, n: int) -> Array:
-	var out: Array = []
-	for i in n:
-		out.append(CATALOG[state.rng.randi_range(0, CATALOG.size() - 1)].id)
-	return out
+## สุ่มพร 1 อัน (เสนอทีละอัน — รับหรือรีโรล)
+static func roll_one(state: GameState) -> StringName:
+	return CATALOG[state.rng.randi_range(0, CATALOG.size() - 1)].id
 
 
 static func pick(state: GameState, id: StringName) -> void:

@@ -60,9 +60,7 @@ func _make_cell(st: GameState, idx: int) -> Button:
         # จำนวน current count (มุมขวาบน) — เฉพาะทหาร
         if d.kind == CardData.Kind.SOLDIER:
             cell.add_child(_overlay("×%d" % int(occ.cur_count), Vector2(cell_size - 32, 1), 30, HORIZONTAL_ALIGNMENT_RIGHT, 12))
-    cell.disabled = locked
-    if not locked:
-        cell.pressed.connect(_emit_slot.bind(idx))
+    cell.pressed.connect(_emit_slot.bind(idx))   # คลิกได้ทุกช่อง (main กรองตาม event; expand ใช้คลิกช่องล็อก)
     return cell
 
 

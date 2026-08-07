@@ -23,9 +23,12 @@ var shop: Array = []                   # ร้าน: data_id / &"" (ช่อ�
 var reward_cards: Array = []           # ตัวเลือกรางวัล (data_id)
 var reward_reroll_cost: int = 10       # reset ทุกหน้า reward
 
-# blessing station (เลือก 1 พร, stack ได้)
+# event overlay บน planning (&"" = ไม่มี, ต้องจบ event ก่อนเล่นการ์ดได้)
+var event: StringName = &""            # "" / "shop" / "blessing" / "expand"
+
+# blessing (เลือก 1 พร หรือรีโรล, stack ได้)
 var blessings: Dictionary = {}         # {blessing_id: stacks} — global run modifier
-var blessing_choices: Array = []       # ตัวเลือกพรที่สถานีนี้ (blessing_id)
+var blessing_choice: StringName = &""  # พรที่เสนอ (1 อัน)
 var blessing_reroll_cost: int = 10     # รีโรลพร (+10 ถาวร)
 
 var rng: Rng                           # สุ่มทั้งหมดผ่านตัวนี้

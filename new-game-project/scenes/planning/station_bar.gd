@@ -81,6 +81,9 @@ func _draw_marker(c: Vector2, typ: StringName) -> void:
 		&"blessing":
 			draw_colored_polygon(PackedVector2Array([
 				c + Vector2(0, -6), c + Vector2(5, 0), c + Vector2(0, 6), c + Vector2(-5, 0)]), ink)
+		&"expand":   # เครื่องหมายบวก = ขยายพื้นที่
+			draw_rect(Rect2(c + Vector2(-5, -1.5), Vector2(10, 3)), ink)
+			draw_rect(Rect2(c + Vector2(-1.5, -5), Vector2(3, 10)), ink)
 		&"boss":
 			draw_circle(c, 3.5, Color(1, 0.85, 0.3))
 
@@ -97,6 +100,7 @@ func _type_fill(st: GameState, f: int, typ: StringName) -> Color:
 	match typ:
 		&"shop": return Color(0.72, 0.58, 0.22)
 		&"blessing": return Color(0.50, 0.36, 0.70)
+		&"expand": return Color(0.24, 0.58, 0.52)
 	var i: int = f - 1
 	var col: StringName = st.wave_track[i].color if (i >= 0 and i < st.wave_track.size()) else &"?"
 	return _wave_color_of(col)

@@ -12,6 +12,8 @@ extends Control
 @onready var _shop = $ShopView
 @onready var _shop_continue: Button = $ShopContinue
 @onready var _blessing = $BlessingView
+@onready var _expand_prompt: Label = $ExpandPrompt
+@onready var _event_toggle: Button = $EventToggle
 @onready var _sell_zone = $Planning/SellZone
 @onready var _station = $StationBar
 @onready var _battle = $Battlefield
@@ -29,6 +31,7 @@ var _color_sb: StyleBoxFlat
 var _sel_hand: int = -1
 var _sel_slot: int = -1
 var _resolving: bool = false   # กำลังเล่นอนิเมชั่นจบเทิร์น (บล็อก input)
+var _peek: bool = false        # ปิด window อีเวนต์ชั่วคราวเพื่อดูกระดาน (ยังอยู่ใน event)
 
 
 func _ready() -> void:
@@ -46,6 +49,7 @@ func _ready() -> void:
     _shop_continue.pressed.connect(_on_shop_continue)
     _blessing.connect("picked", _on_blessing_pick)
     _blessing.connect("reroll_pressed", _on_blessing_reroll)
+    _event_toggle.pressed.connect(func(): _peek = not _peek; _refresh_event())
     _debug.connect("give_card", _on_dbg_give)
     _debug.connect("give_gold", _on_dbg_gold)
     _debug.connect("skip_floor", _on_dbg_skip)
@@ -121,6 +125,20 @@ func _on_card_selected(i: int) -> void:
 
 func _on_slot_clicked(idx: int) -> void:
     if _resolving:
+        return
+    var ev: StringName = Game.state.event
+    if ev == &"expand":   # อีเวนต์ขยาย: คลิกช่องล็อกที่ติดพื้นที่ = ปลดล็อก
+        if GameSim.step(Game.state, {"type": &"expand_tile", "slot": idx}):
+            _reset_selection()
+            _refresh_planning()
+            _update_phase()
+        return
+    if ev != &"":   # อีเวนต์อื่น: ดู stat การ์ดได้ แต่เล่นไม่ได้
+        var t = Game.state.board[idx]
+        if t is Dictionary:
+            _panel.show_current(t)
+        else:
+            _panel.clear()
         return
     if _sel_hand >= 0:
         var d: CardData = Content.card(Game.state.hand[_sel_hand])
@@ -298,8 +316,8 @@ func _on_combat_ended() -> void:
 
 
 # --- blessing station ---
-func _on_blessing_pick(index: int) -> void:
-    if GameSim.step(Game.state, {"type": &"pick_blessing", "index": index}):
+func _on_blessing_pick() -> void:
+    if GameSim.step(Game.state, {"type": &"pick_blessing"}):
         _reset_selection()
         _refresh_planning()
         _update_phase()
@@ -322,16 +340,10 @@ func _on_gameover_continue() -> void:
 
 # --- shared ---
 func _update_phase() -> void:
+    _peek = false                       # สถานีใหม่ = โชว์ window อีเวนต์เสมอ
     var ph: StringName = Game.state.phase
     _planning.visible = ph == &"planning"
     _battle.visible = ph == &"combat"
-    _shop.visible = ph == &"shop"
-    _shop_continue.visible = ph == &"shop"
-    _blessing.visible = ph == &"blessing"
-    if ph == &"shop":
-        _shop.refresh()
-    elif ph == &"blessing":
-        _blessing.refresh()
     _overlay.visible = ph == &"gameover" or ph == &"won"
     if ph == &"gameover":
         var st: GameState = Game.state
@@ -339,7 +351,28 @@ func _update_phase() -> void:
     elif ph == &"won":
         var st2: GameState = Game.state
         _result_label.text = "🏆 ชนะแล้ว!\nพิชิตบอสเวฟ 30    ฆ่าศัตรู %d    ทองสะสม %d\n\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % [st2.kills, st2.gold_earned]
+    _refresh_event()
     _update_top()
+
+
+## โชว์ window อีเวนต์ (shop/blessing) ทับ planning หรือ prompt (expand); peek = ปิดชั่วคราว
+func _refresh_event() -> void:
+    var ev: StringName = Game.state.event
+    var in_plan: bool = Game.state.phase == &"planning"
+    var active: bool = in_plan and ev != &""
+    var windowed: bool = ev == &"shop" or ev == &"blessing"
+    var show_win: bool = active and windowed and not _peek
+    _shop.visible = ev == &"shop" and show_win
+    _shop_continue.visible = ev == &"shop" and show_win
+    _blessing.visible = ev == &"blessing" and show_win
+    _expand_prompt.visible = active and ev == &"expand"
+    _event_toggle.visible = active and windowed
+    _event_toggle.text = "👁 ดูอีเวนต์" if _peek else "👁 ดูกระดาน"
+    _fight.visible = in_plan and ev == &""   # สู้ได้เฉพาะสถานี combat (ไม่มี event)
+    if _shop.visible:
+        _shop.refresh()
+    if _blessing.visible:
+        _blessing.refresh()
 
 
 func _refresh_planning() -> void:
@@ -359,15 +392,21 @@ func _reset_selection() -> void:
 func _update_top() -> void:
     var st: GameState = Game.state
     var ph: String = "วางแผน"
-    match st.phase:
-        &"combat": ph = "สู้!"
-        &"shop": ph = "ร้านค้า"
-        &"blessing": ph = "พร"
-        &"gameover": ph = "จบเกม"
-        &"won": ph = "ชนะ!"
+    if st.phase == &"combat":
+        ph = "สู้!"
+    elif st.phase == &"gameover":
+        ph = "จบเกม"
+    elif st.phase == &"won":
+        ph = "ชนะ!"
+    elif st.event == &"shop":
+        ph = "ร้านค้า"
+    elif st.event == &"blessing":
+        ph = "พร"
+    elif st.event == &"expand":
+        ph = "ขยายพื้นที่"
     _top.text = "ชั้น %d  ·  gold %d  ·  HP %d  ·  [%s]" % [st.floor_num, st.gold, st.base_hp, ph]
-    # ปุ่มรีโรลสีศัตรู เฉพาะสถานี combat/planning เท่านั้น
-    _color_btn.visible = st.phase == &"planning"
+    # ปุ่มรีโรลสีศัตรู เฉพาะสถานี combat (planning ไม่มี event)
+    _color_btn.visible = st.phase == &"planning" and st.event == &""
     _color_btn.text = "ศัตรูเวฟนี้: สี%s   ·   รีโรล %dg" % [_color_name(st.wave_color), st.enemy_reroll_cost]
     _color_btn.disabled = st.gold < st.enemy_reroll_cost
     _color_sb.bg_color = _wave_btn_color(st.wave_color)

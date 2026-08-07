@@ -39,14 +39,16 @@ const TRACK_LOOKAHEAD := 6   # วางแผนสถานีล่วงห�
 const BOSS_FLOOR := 30       # เวฟ 30 = บอส, ชนะ = จบเกม
 
 
-## ชนิดสถานีของ floor — fix ลำดับ: combat → shop → blessing วน; floor 30 = boss
+## ชนิดสถานีของ floor — special (shop/blessing/expand) มาทุก 8 เวฟ คนละจังหวะ
+## ไม่มี special ติดกัน (มี combat คั่นเสมอ); floor 1 = combat; floor 30 = boss
 static func station_type(floor_num: int) -> StringName:
     if floor_num == BOSS_FLOOR:
         return &"boss"
-    match (floor_num - 1) % 3:
-        0: return &"combat"
-        1: return &"shop"
-        _: return &"blessing"
+    match floor_num % 8:
+        3: return &"shop"
+        5: return &"blessing"
+        7: return &"expand"
+        _: return &"combat"
 
 
 ## ต่อ wave_track ให้ครอบคลุมถึง floor นี้ + lookahead (เรียกจาก sim เท่านั้น — ใช้ rng)

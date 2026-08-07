@@ -128,6 +128,35 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("11")
 
+[node name="ExpandPrompt" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 104.0
+offset_right = 300.0
+offset_bottom = 150.0
+grow_horizontal = 2
+text = "🧩 ขยายพื้นที่ฟรี: เลือกช่องล็อกที่ติดกับพื้นที่ของเรา เพื่อปลดล็อก 1 ช่อง"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="EventToggle" type="Button" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 104.0
+offset_right = 80.0
+offset_bottom = 132.0
+grow_horizontal = 2
+text = "👁 ดูกระดาน"
+
 [node name="TopBar" type="Label" parent="." unique_id=1510625430]
 layout_mode = 1
 offset_left = 14.0
