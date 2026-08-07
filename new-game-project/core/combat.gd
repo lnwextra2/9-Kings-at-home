@@ -150,6 +150,8 @@ static func _cleanup_deaths(state: GameState) -> void:
     for u in state.units:
         if u.alive and Unit.can_die(u) and u.hp <= 0.0:
             u.alive = false
+            if u.team == 1:
+                state.kills += 1
             # on_death hooks = M3
 
 

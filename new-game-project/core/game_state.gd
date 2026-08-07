@@ -5,7 +5,9 @@ extends RefCounted
 var phase: StringName = &"planning"   # planning / combat / reward / gameover
 var floor_num: int = 1
 var gold: int = 30
+var gold_earned: int = 0               # ทองสะสมทั้ง run (สำหรับหน้าสรุป)
 var base_hp: int = 3                   # ชีวิตบ้าน
+var kills: int = 0                     # ศัตรูที่ฆ่าทั้ง run (สำหรับหน้าสรุป)
 
 var cols: int = 5
 var rows: int = 5
@@ -35,6 +37,7 @@ static func new_run(cfg: RunConfig) -> GameState:
 	s.cols = cfg.board_cols
 	s.rows = cfg.board_rows
 	s.gold = cfg.start_gold
+	s.gold_earned = cfg.start_gold
 	s.base_hp = cfg.base_hp
 	s.board.resize(s.cols * s.rows)
 

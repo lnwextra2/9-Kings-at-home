@@ -20,7 +20,9 @@ static func _fire(state: GameState, idx: int, e: EffectData) -> void:
     var mult: int = int(source.level) if e.scales_with_level else 1
     match e.action:
         EffectData.Action.GRANT_GOLD:
-            state.gold += int(e.value * mult)          # ตลาด: +value × level
+            var g: int = int(e.value * mult)           # ตลาด: +value × level
+            state.gold += g
+            state.gold_earned += g
         EffectData.Action.MODIFY_STAT:
             for t in _targets(state, idx, e):
                 _apply_stat(t, e, mult)                # ฟาร์ม: +count ให้เพื่อนบ้าน ฯลฯ

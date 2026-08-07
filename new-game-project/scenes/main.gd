@@ -143,7 +143,8 @@ func _on_combat_ended() -> void:
     GameSim.end_combat(Game.state)
     _battle.visible = false
     if Game.state.phase == &"gameover":
-        _result_label.text = "GAME OVER — ไปถึงชั้น %d\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % Game.state.floor_num
+        var st: GameState = Game.state
+        _result_label.text = "GAME OVER\nไปถึงชั้น %d    ฆ่าศัตรู %d    ทองสะสม %d\n\n(กด 'ต่อไป' เพื่อเริ่มใหม่)" % [st.floor_num, st.kills, st.gold_earned]
         _overlay.visible = true
     else:
         _reward.refresh()

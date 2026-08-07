@@ -24,7 +24,9 @@ static func step(state: GameState, action: Dictionary) -> bool:
             state.hand.append(action.data_id)
             return true
         &"dbg_gold":
-            state.gold += int(action.get("amount", 100))
+            var amt: int = int(action.get("amount", 100))
+            state.gold += amt
+            state.gold_earned += amt
             return true
         &"dbg_skip_floor":
             state.floor_num += int(action.get("amount", 1))
