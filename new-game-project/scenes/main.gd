@@ -11,6 +11,7 @@ extends Control
 @onready var _panel = $Planning/CardPanel
 @onready var _shop = $Planning/ShopView
 @onready var _sell_zone = $Planning/SellZone
+@onready var _station = $StationBar
 @onready var _battle = $Battlefield
 @onready var _devbtn: Button = $DevButton
 @onready var _reward = $RewardView
@@ -353,3 +354,4 @@ func _update_top() -> void:
     _color_btn.text = "ศัตรูเวฟนี้: สี%s   ·   รีโรล %dg" % [_color_name(st.wave_color), st.enemy_reroll_cost]
     _color_btn.disabled = st.gold < st.enemy_reroll_cost
     _color_sb.bg_color = _wave_btn_color(st.wave_color)
+    _station.refresh()

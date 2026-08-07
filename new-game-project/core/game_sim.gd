@@ -39,6 +39,8 @@ static func step(state: GameState, action: Dictionary) -> bool:
             return true
         &"dbg_skip_floor":
             state.floor_num += int(action.get("amount", 1))
+            WaveGen.ensure_track(state, state.floor_num)
+            state.wave_color = state.wave_track[state.floor_num - 1]
             return true
         &"dbg_spawn_enemies":
             _dbg_spawn_enemies(state, int(action.get("count", 20)))
@@ -149,7 +151,8 @@ static func _pick_reward(state: GameState, index: int) -> bool:
     state.hand.append(state.reward_cards[index])
     state.reward_cards = []
     state.floor_num += 1
-    state.wave_color = WaveGen.roll_color(state.rng)   # สุ่มสีศัตรู floor ถัดไป
+    WaveGen.ensure_track(state, state.floor_num)       # วางแผนสีล่วงหน้าให้พอ
+    state.wave_color = state.wave_track[state.floor_num - 1]   # ใช้สีที่วางแผนไว้ (ตรงกับที่โชว์บนแถบ)
     Shop.roll(state)
     state.phase = &"planning"
     return true
@@ -170,6 +173,7 @@ static func _reroll_color(state: GameState) -> bool:
     state.gold -= state.enemy_reroll_cost
     state.enemy_reroll_cost += 10
     state.wave_color = WaveGen.roll_color(state.rng)
+    state.wave_track[state.floor_num - 1] = state.wave_color   # อัพเดตสถานีปัจจุบันบนแถบ
     return true
 
 

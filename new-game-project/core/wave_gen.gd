@@ -35,6 +35,21 @@ static func roll_color(rng: Rng) -> StringName:
     return cols[rng.randi_range(0, cols.size() - 1)]
 
 
+const TRACK_LOOKAHEAD := 6   # วางแผนสีเวฟล่วงหน้ากี่ floor (พอให้แถบสถานีมองไปข้างหน้าได้)
+
+
+## ต่อ wave_track ให้ครอบคลุมถึง floor นี้ + lookahead (เรียกจาก sim เท่านั้น — ใช้ rng)
+static func ensure_track(state: GameState, upto_floor: int) -> void:
+    var need: int = upto_floor + TRACK_LOOKAHEAD
+    while state.wave_track.size() < need:
+        state.wave_track.append(roll_color(state.rng))
+
+
+## floor นี้เป็นบอสไหม (ตอนนี้ใช้โชว์ไอคอนแถบสถานีอย่างเดียว — กลไกบอส = M5)
+static func is_boss_floor(floor_num: int) -> bool:
+    return floor_num % 5 == 0
+
+
 static func _pool(color: StringName) -> Array:
     var out: Array = []
     for d in Content.all():

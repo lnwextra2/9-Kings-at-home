@@ -5,6 +5,7 @@ extends RefCounted
 var phase: StringName = &"planning"   # planning / combat / reward / gameover
 var floor_num: int = 1
 var wave_color: StringName = &"blue"   # สีศัตรูเวฟนี้ (ศัตรูใช้การ์ดผู้เล่นสีนี้)
+var wave_track: Array = []             # สีเวฟวางแผนล่วงหน้าต่อ floor (index = floor-1) — แถบสถานี
 var enemy_reroll_cost: int = 10        # รีโรลสีศัตรู (แพงขึ้นถาวร)
 var gold: int = 30
 var gold_earned: int = 0               # ทองสะสมทั้ง run (สำหรับหน้าสรุป)
@@ -39,7 +40,8 @@ var battle_cfg: BattleConfig           # config สนามรบ (set โด�
 static func new_run(cfg: RunConfig) -> GameState:
 	var s := GameState.new()
 	s.rng = Rng.new()
-	s.wave_color = WaveGen.roll_color(s.rng)
+	WaveGen.ensure_track(s, s.floor_num)            # วางแผนสีเวฟล่วงหน้า (แถบสถานี)
+	s.wave_color = s.wave_track[s.floor_num - 1]
 	s.cols = cfg.board_cols
 	s.rows = cfg.board_rows
 	s.gold = cfg.start_gold
