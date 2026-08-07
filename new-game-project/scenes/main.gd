@@ -4,6 +4,7 @@ extends Control
 const CARD_PANEL := preload("res://scenes/planning/card_panel.tscn")
 const SHOP_VIEW := preload("res://scenes/planning/shop_view.tscn")
 const REWARD_VIEW := preload("res://scenes/planning/reward_view.tscn")
+const DEBUG_VIEW := preload("res://scenes/planning/debug_view.tscn")
 
 @onready var _top: Label = $TopBar
 @onready var _planning: Control = $Planning
@@ -18,6 +19,8 @@ const REWARD_VIEW := preload("res://scenes/planning/reward_view.tscn")
 var _panel: Control
 var _shop
 var _reward
+var _debug
+var _devbtn: Button
 var _sel_hand: int = -1
 var _sel_slot: int = -1
 
@@ -40,8 +43,51 @@ func _ready() -> void:
     _reward.visible = false
     _reward.connect("picked", _on_reward_pick)
     _reward.connect("reroll_pressed", _on_reward_reroll)
+    _debug = DEBUG_VIEW.instantiate()
+    add_child(_debug)
+    _debug.visible = false
+    _debug.connect("give_card", _on_dbg_give)
+    _debug.connect("give_gold", _on_dbg_gold)
+    _debug.connect("skip_floor", _on_dbg_skip)
+    _debug.connect("spawn_enemies", _on_dbg_spawn)
+    _debug.connect("clear_enemies", _on_dbg_clear)
+    _devbtn = Button.new()
+    _devbtn.text = "DEV"
+    _devbtn.focus_mode = Control.FOCUS_NONE
+    _devbtn.anchor_left = 1.0
+    _devbtn.anchor_right = 1.0
+    _devbtn.offset_left = -60.0
+    _devbtn.offset_right = -10.0
+    _devbtn.offset_top = 6.0
+    _devbtn.offset_bottom = 30.0
+    add_child(_devbtn)
+    _devbtn.pressed.connect(func(): _debug.visible = not _debug.visible)
     _refresh_planning()
     _update_phase()
+
+
+func _on_dbg_give(id: StringName) -> void:
+    GameSim.step(Game.state, {"type": &"dbg_give", "data_id": id})
+    _refresh_planning()
+
+
+func _on_dbg_gold() -> void:
+    GameSim.step(Game.state, {"type": &"dbg_gold", "amount": 100})
+    _refresh_planning()
+
+
+func _on_dbg_skip() -> void:
+    GameSim.step(Game.state, {"type": &"dbg_skip_floor", "amount": 1})
+    _refresh_planning()
+    _update_phase()
+
+
+func _on_dbg_spawn() -> void:
+    GameSim.step(Game.state, {"type": &"dbg_spawn_enemies", "count": 20})
+
+
+func _on_dbg_clear() -> void:
+    GameSim.step(Game.state, {"type": &"dbg_clear_enemies"})
 
 
 # --- planning: place / inspect ---

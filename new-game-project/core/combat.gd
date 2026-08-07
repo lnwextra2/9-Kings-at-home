@@ -25,8 +25,8 @@ static func tick(state: GameState, dt: float) -> void:
             u.retarget_timer -= dt
         u.attacking = false
 
-        # หาเป้าใหม่เมื่อ: ไม่มีเป้า / เป้าตายหรือไม่ valid / ครบรอบ retarget
-        if u.target_id == -1 or not _valid_target(units, u.target_id, u.team) or u.retarget_timer <= 0.0:
+        # หาเป้าใหม่เมื่อ: ครบรอบ retarget / เป้าเดิมตาย — ไม่ re-scan ทุก tick ตอนไม่มีเป้า
+        if u.retarget_timer <= 0.0 or (u.target_id != -1 and not _valid_target(units, u.target_id, u.team)):
             u.target_id = hash.nearest_enemy(units, u)
             u.retarget_timer = cfg.retarget_interval
 

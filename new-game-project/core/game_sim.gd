@@ -20,7 +20,33 @@ static func step(state: GameState, action: Dictionary) -> bool:
             return _pick_reward(state, action.index)
         &"reroll_reward":
             return _reroll_reward(state)
+        &"dbg_give":
+            state.hand.append(action.data_id)
+            return true
+        &"dbg_gold":
+            state.gold += int(action.get("amount", 100))
+            return true
+        &"dbg_skip_floor":
+            state.floor_num += int(action.get("amount", 1))
+            return true
+        &"dbg_spawn_enemies":
+            _dbg_spawn_enemies(state, int(action.get("count", 20)))
+            return true
+        &"dbg_clear_enemies":
+            for u in state.units:
+                if u.team == 1 and u.alive:
+                    u.alive = false
+            return true
     return false
+
+
+static func _dbg_spawn_enemies(state: GameState, count: int) -> void:
+    var cfg: BattleConfig = state.battle_cfg
+    var scale: float = WaveGen.scale_for(state.floor_num)
+    for i in count:
+        var y: float = float(state.rng.randi_range(int(cfg.enemy_y_margin), int(cfg.height - cfg.enemy_y_margin)))
+        var x: float = cfg.enemy_x + float(state.rng.randi_range(-20, 40))
+        state.units.append(Unit.from_data_scaled(1, WaveGen.ENEMY_ID, x, y, scale))
 
 
 static func _use_card(state: GameState, hand_index: int, slot: int) -> bool:

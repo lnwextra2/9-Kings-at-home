@@ -6,9 +6,12 @@ extends RefCounted
 
 const OFS := 512
 const STRIDE := 4096
+const MAX_RING := 24   # สนาม ~16×9 cell — ไม่มีทางไกลกว่านี้ (กัน scan ทั้งแมพเมื่อไม่มีเป้า)
 
 var _cell: float
 var _b: Dictionary = {}   # int key -> Array[int]
+var _tc0: int = 0         # จำนวน targetable ทีม 0
+var _tc1: int = 0         # จำนวน targetable ทีม 1
 
 
 func _init(cell_size: float) -> void:
@@ -26,6 +29,10 @@ static func build(units: Array, cell_size: float) -> SpatialHash:
         var u: Dictionary = units[i]
         if not u.alive or not u.targetable:
             continue
+        if u.team == 0:
+            h._tc0 += 1
+        else:
+            h._tc1 += 1
         var key := _key(int(floor(u.x / cell_size)), int(floor(u.y / cell_size)))
         var arr = b.get(key)
         if arr == null:
@@ -37,6 +44,9 @@ static func build(units: Array, cell_size: float) -> SpatialHash:
 
 ## index ศัตรู (team ตรงข้าม) ที่ใกล้สุด — ขยาย ring จนเจอ แล้วเผื่ออีก 1 ring
 func nearest_enemy(units: Array, u: Dictionary) -> int:
+    var team0: int = u.team
+    if (team0 == 0 and _tc1 == 0) or (team0 != 0 and _tc0 == 0):
+        return -1   # ฝ่ายตรงข้ามไม่มีเป้าที่ตีได้เลย — ไม่ต้องสแกน
     var cx := int(floor(u.x / _cell))
     var cy := int(floor(u.y / _cell))
     var team: int = u.team
@@ -46,7 +56,7 @@ func nearest_enemy(units: Array, u: Dictionary) -> int:
     var best_d := INF
     var found_at := -1
     var ring := 0
-    while ring <= 64:
+    while ring <= MAX_RING:
         var lo_x := cx - ring
         var hi_x := cx + ring
         var lo_y := cy - ring
