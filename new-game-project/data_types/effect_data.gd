@@ -3,7 +3,7 @@ extends Resource
 ## Tier 1 — declarative effect (คลิกใน editor ไม่ต้องเขียนโค้ด)
 
 enum Trigger { END_TURN, ON_DEATH, ON_SPAWN, ON_UPGRADE, ON_KILL }
-enum Action { GRANT_GOLD, MODIFY_STAT, UPGRADE_RANDOM, SPAWN_EXTRA, DAMAGE_AREA }
+enum Action { GRANT_GOLD, MODIFY_STAT, UPGRADE_RANDOM, SPAWN_EXTRA, DAMAGE_AREA, LEVEL_UP }
 enum Target { SELF, NEIGHBORS_4, DIAGONALS_4, RANDOM_CARD, ALL_CARDS, SAME_COLOR, RANDOM_NEIGHBOR }
 
 @export var trigger: Trigger = Trigger.END_TURN

@@ -157,6 +157,8 @@ func _buff_text(e: Dictionary) -> String:
             return "+%d %s" % [int(round(float(e.amount))), s]
         &"gold":
             return "+%dg" % int(e.amount)
+        &"level":
+            return "Lv +1"
     return "+%d %s" % [int(e.stacks), str(e.ability)]   # ability buff
 
 
@@ -164,6 +166,7 @@ func _buff_color(e: Dictionary) -> Color:
     match e.kind:
         &"stat": return Color(0.45, 0.95, 0.55)   # เขียว
         &"gold": return Color(0.98, 0.82, 0.30)   # ทอง
+        &"level": return Color(0.80, 0.60, 1.0)   # ม่วง = อัพเลเวล
     return Color(0.55, 0.75, 1.0)                  # ฟ้า = ability
 
 

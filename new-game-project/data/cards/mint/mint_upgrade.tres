@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://mint0upgrade0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" path="res://data_types/effect_data.gd" id="2"]
+
+[sub_resource type="Resource" id="eff_upgrade"]
+script = ExtResource("2")
+trigger = 0
+action = 5
+target = 0
+value = 1.0
+scales_with_level = false
+is_percent = false
+
+[resource]
+script = ExtResource("1")
+id = &"mint_upgrade"
+display_name = "ตำราอัพเกรด"
+color = &"mint"
+kind = 5
+description = "โทมใช้ครั้งเดียว: อัพเลเวลการ์ดเป้าหมาย +1 ทันที (ใช้กับ Lv3 ไม่ได้)"
+max_hp = 0.0
+attack = 0.0
+move_speed = 0.0
+base_count = 1
+effects = Array[EffectData]([SubResource("eff_upgrade")])
+cost = 5

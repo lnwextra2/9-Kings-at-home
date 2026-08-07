@@ -92,10 +92,17 @@ static func use_card(state: GameState, data_id: StringName, slot: int) -> bool:
                 state.buff_events.append({"slot": slot, "kind": &"ability", "ability": k, "stacks": int(d.abilities[k])})
             return true
         CardData.Kind.TOME:
+            # กันใช้ตำราอัพเกรดตอนเลเวลเต็ม (Lv3) — ไม่กินการ์ด
+            for e in d.effects:
+                if e.action == EffectData.Action.LEVEL_UP and int(target.level) >= 3:
+                    return false
             for e in d.effects:
                 _apply_effect(target, e)
-                if e.action == EffectData.Action.MODIFY_STAT:
-                    state.buff_events.append({"slot": slot, "kind": &"stat", "stat": e.stat_name, "amount": e.value, "is_percent": e.is_percent})
+                match e.action:
+                    EffectData.Action.MODIFY_STAT:
+                        state.buff_events.append({"slot": slot, "kind": &"stat", "stat": e.stat_name, "amount": e.value, "is_percent": e.is_percent})
+                    EffectData.Action.LEVEL_UP:
+                        state.buff_events.append({"slot": slot, "kind": &"level"})
             return true
     return false
 
@@ -107,3 +114,5 @@ static func _apply_effect(card: Dictionary, e: EffectData) -> void:
                 Stats.apply_pct(card, e.stat_name, e.value)
             else:
                 Stats.apply_flat(card, e.stat_name, e.value)
+        EffectData.Action.LEVEL_UP:
+            Stats.level_up(card)
