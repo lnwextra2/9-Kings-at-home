@@ -22,6 +22,7 @@ var _reward
 var _debug
 var _devbtn: Button
 var _color_btn: Button
+var _color_sb: StyleBoxFlat
 var _sel_hand: int = -1
 var _sel_slot: int = -1
 
@@ -66,12 +67,19 @@ func _ready() -> void:
     _devbtn.pressed.connect(func(): _debug.visible = not _debug.visible)
     _color_btn = Button.new()
     _color_btn.focus_mode = Control.FOCUS_NONE
-    _color_btn.anchor_left = 0.5
-    _color_btn.anchor_right = 0.5
-    _color_btn.offset_left = -170.0
-    _color_btn.offset_right = 170.0
-    _color_btn.offset_top = 6.0
-    _color_btn.offset_bottom = 30.0
+    # ปุ่มสีเวฟ = ขวาล่าง ใต้ปุ่มเริ่มรบ (ปรับตำแหน่งที่ offset_* พวกนี้)
+    _color_btn.anchor_left = 1.0
+    _color_btn.anchor_top = 1.0
+    _color_btn.anchor_right = 1.0
+    _color_btn.anchor_bottom = 1.0
+    _color_btn.offset_left = -320.0
+    _color_btn.offset_top = -130.0
+    _color_btn.offset_right = -24.0
+    _color_btn.offset_bottom = -90.0
+    _color_sb = StyleBoxFlat.new()
+    _color_sb.set_corner_radius_all(6)
+    for _cs in ["normal", "hover", "pressed", "disabled"]:
+        _color_btn.add_theme_stylebox_override(_cs, _color_sb)
     add_child(_color_btn)
     _color_btn.pressed.connect(_on_reroll_color)
     _refresh_planning()
@@ -81,6 +89,17 @@ func _ready() -> void:
 func _on_reroll_color() -> void:
     if GameSim.step(Game.state, {"type": &"reroll_color"}):
         _refresh_planning()
+
+
+## สีพื้นปุ่มสีเวฟ (โทนกลาง อ่านตัวหนังสือขาวออก) — เพิ่มสีใหม่ที่นี่
+func _wave_btn_color(c: StringName) -> Color:
+    match c:
+        &"blue": return Color(0.24, 0.40, 0.66)
+        &"red": return Color(0.62, 0.24, 0.22)
+        &"green": return Color(0.24, 0.50, 0.30)
+        &"gold": return Color(0.58, 0.48, 0.16)
+        &"mint": return Color(0.22, 0.52, 0.46)
+        _: return Color(0.30, 0.32, 0.36)
 
 
 func _color_name(c: StringName) -> String:
@@ -255,3 +274,4 @@ func _update_top() -> void:
     if _color_btn:
         _color_btn.text = "ศัตรูเวฟนี้: สี%s   ·   รีโรล %dg" % [_color_name(st.wave_color), st.enemy_reroll_cost]
         _color_btn.disabled = st.gold < st.enemy_reroll_cost
+        _color_sb.bg_color = _wave_btn_color(st.wave_color)
