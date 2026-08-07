@@ -16,9 +16,14 @@ signal combat_ended
 @export var dmg_color: Color = Color(1.0, 0.92, 0.45)   # เหลืองอ่อน
 @export var dmg_max: int = 80              # เพดานจำนวน popup พร้อมกัน (กัน FPS ตก)
 
+@export_group("Corpse")   # ศพยูนิตที่ตาย นอนค้างในสนาม (ทั้ง 2 ฝ่าย) — จูนได้
+@export var corpse_tint: Color = Color(0.5, 0.5, 0.55, 0.9)   # โทนซีด/หม่นของศพ
+@export var corpse_angle_deg: float = 88.0                     # องศานอน (~90 = ล้มราบ)
+
 var _accum: float = 0.0
 var _ended: bool = false
-var _mmis: Dictionary = {}   # data_id (StringName) -> MultiMeshInstance2D
+var _mmis: Dictionary = {}          # data_id -> MultiMeshInstance2D (ยูนิตเป็น)
+var _corpse_mmis: Dictionary = {}   # data_id -> MultiMeshInstance2D (ศพ, วาดใต้ยูนิตเป็น)
 var _popups: Array = []      # {x, y, text, age} — เลขดาเมจกำลังลอย (view ล้วน)
 
 
@@ -27,6 +32,8 @@ func start() -> void:
     _ended = false
     _popups.clear()
     for mmi in _mmis.values():
+        mmi.multimesh.instance_count = 0
+    for mmi in _corpse_mmis.values():
         mmi.multimesh.instance_count = 0
 
 
@@ -71,16 +78,21 @@ func _age_popups(delta: float) -> void:
 
 func _sync_multimesh(st: GameState) -> void:
     var t: float = st.combat_time
-    var groups: Dictionary = {}
+    var live: Dictionary = {}
+    var dead: Dictionary = {}
     for u in st.units:
-        if u.alive and not u.is_wall and Content.card(u.data_id).sprite != null:
-            var arr = groups.get(u.data_id)
-            if arr == null:
-                arr = []
-                groups[u.data_id] = arr
-            arr.append(u)
-    for data_id in groups:
-        var arr: Array = groups[data_id]
+        if u.is_wall or Content.card(u.data_id).sprite == null:
+            continue
+        var bucket: Dictionary = live if u.alive else dead
+        var arr = bucket.get(u.data_id)
+        if arr == null:
+            arr = []
+            bucket[u.data_id] = arr
+        arr.append(u)
+
+    # ยูนิตเป็น (เด้ง/เอียงตอนตี)
+    for data_id in live:
+        var arr: Array = live[data_id]
         var mm: MultiMesh = _get_mmi(data_id).multimesh
         mm.instance_count = arr.size()
         for i in arr.size():
@@ -96,8 +108,29 @@ func _sync_multimesh(st: GameState) -> void:
                 # ศัตรูหันซ้าย: mirror X (scale -1) → เอียงกลับด้าน (ซ้าย) ตอนตีอัตโนมัติ
                 mm.set_instance_transform_2d(i, Transform2D(ang, Vector2(-1.0, 1.0), 0.0, pos))
     for data_id in _mmis:
-        if not groups.has(data_id):
+        if not live.has(data_id):
             _mmis[data_id].multimesh.instance_count = 0
+
+    # ศพ (นอนราบ, โทนหม่น) — วาดใต้ยูนิตเป็น
+    for data_id in dead:
+        var arr: Array = dead[data_id]
+        var mm: MultiMesh = _get_corpse_mmi(data_id).multimesh
+        mm.instance_count = arr.size()
+        for i in arr.size():
+            var u: Dictionary = arr[i]
+            var pos := Vector2(u.x, u.y)
+            # ล้มซ้าย/ขวาสลับตามพิกัด (ให้ดูไม่ซ้ำ) — deterministic ไม่ต้องเก็บ state
+            var ang: float = deg_to_rad(corpse_angle_deg)
+            if (int(u.x) & 1) == 1:
+                ang = -ang
+            if u.team == 0:
+                mm.set_instance_transform_2d(i, Transform2D(ang, pos))
+            else:
+                mm.set_instance_transform_2d(i, Transform2D(ang, Vector2(-1.0, 1.0), 0.0, pos))
+            mm.set_instance_color(i, corpse_tint)
+    for data_id in _corpse_mmis:
+        if not dead.has(data_id):
+            _corpse_mmis[data_id].multimesh.instance_count = 0
 
 
 func _get_mmi(data_id: StringName) -> MultiMeshInstance2D:
@@ -112,8 +145,29 @@ func _get_mmi(data_id: StringName) -> MultiMeshInstance2D:
     mmi.position = field_origin
     mmi.texture = d.sprite
     mmi.multimesh = mm
+    mmi.z_index = 1   # ยูนิตเป็นอยู่เหนือศพ
     add_child(mmi)
     _mmis[data_id] = mmi
+    return mmi
+
+
+## MMI สำหรับศพ — เปิด use_colors (ย้อมโทนหม่น), z_index 0 → อยู่ใต้ยูนิตเป็น (z 1) แต่เหนือพื้น
+func _get_corpse_mmi(data_id: StringName) -> MultiMeshInstance2D:
+    if _corpse_mmis.has(data_id):
+        return _corpse_mmis[data_id]
+    var d: CardData = Content.card(data_id)
+    var r: float = _radius_for(d)
+    var mm := MultiMesh.new()
+    mm.transform_format = MultiMesh.TRANSFORM_2D
+    mm.use_colors = true
+    mm.mesh = _make_quad(r * 2.4, r * 2.4)
+    var mmi := MultiMeshInstance2D.new()
+    mmi.position = field_origin
+    mmi.texture = d.sprite
+    mmi.multimesh = mm
+    mmi.z_index = 0
+    add_child(mmi)
+    _corpse_mmis[data_id] = mmi
     return mmi
 
 
