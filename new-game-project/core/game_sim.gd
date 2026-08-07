@@ -34,6 +34,10 @@ static func step(state: GameState, action: Dictionary) -> bool:
             return _reroll_blessing(state)
         &"expand_tile":
             return _expand_tile(state, action.slot)
+        &"pick_reward":
+            return _pick_reward(state, action.index)
+        &"reroll_reward":
+            return _reroll_reward(state)
         &"reroll_color":
             return _reroll_color(state)
         &"dbg_give":
@@ -153,7 +157,11 @@ static func end_combat(state: GameState) -> void:
         else:
             _enter_station(state)      # แพ้บอส (ยังมี HP) → เล่นบอสใหม่
         return
-    _advance_station(state)            # เวฟปกติ ชนะ/แพ้ก็ไปสถานีถัดไป
+    # เวฟปกติ ชนะ/แพ้ก็ได้รางวัลการ์ด (event reward) — เลือกแล้วค่อยไปสถานีถัดไป
+    _roll_reward(state)
+    state.reward_reroll_cost = 10
+    state.event = &"reward"
+    state.phase = &"planning"
 
 
 ## เข้าสถานีปัจจุบัน — phase=planning เสมอ; event = overlay (ล็อกการเล่นการ์ด)
@@ -176,6 +184,41 @@ static func _enter_station(state: GameState) -> void:
             if g > 0:
                 state.gold += g
                 state.gold_earned += g
+
+
+## รางวัลการ์ดหลังจบเวฟ — สุ่ม 3 ใบจากสีที่เพิ่งสู้ (fallback ร้าน)
+static func _roll_reward(state: GameState) -> void:
+    var p: Array = _reward_pool(state)
+    state.reward_cards = []
+    if not p.is_empty():
+        for i in 3:
+            state.reward_cards.append(state.rng.pick(p).id)
+
+
+static func _reward_pool(state: GameState) -> Array:
+    var p: Array = Content.by_color(state.wave_color)
+    if p.is_empty():
+        p = Shop.pool()
+    return p
+
+
+## เลือกรางวัล 1 ใบ → เข้ามือ, จบ event → ไปสถานีถัดไป
+static func _pick_reward(state: GameState, index: int) -> bool:
+    if state.event != &"reward" or index < 0 or index >= state.reward_cards.size():
+        return false
+    state.hand.append(state.reward_cards[index])
+    state.reward_cards = []
+    _advance_station(state)
+    return true
+
+
+static func _reroll_reward(state: GameState) -> bool:
+    if state.event != &"reward" or state.gold < state.reward_reroll_cost:
+        return false
+    state.gold -= state.reward_reroll_cost
+    state.reward_reroll_cost += 10
+    _roll_reward(state)
+    return true
 
 
 ## ไปสถานีถัดไป (floor+1) แล้วเข้าสถานีนั้น

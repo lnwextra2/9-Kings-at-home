@@ -14,6 +14,7 @@ extends Control
 @onready var _blessing = $BlessingView
 @onready var _expand_prompt: Label = $ExpandPrompt
 @onready var _event_toggle: Button = $EventToggle
+@onready var _reward = $RewardView
 @onready var _sell_zone = $Planning/SellZone
 @onready var _station = $StationBar
 @onready var _battle = $Battlefield
@@ -50,6 +51,8 @@ func _ready() -> void:
     _blessing.connect("picked", _on_blessing_pick)
     _blessing.connect("reroll_pressed", _on_blessing_reroll)
     _event_toggle.pressed.connect(func(): _peek = not _peek; _refresh_event())
+    _reward.connect("picked", _on_reward_pick)
+    _reward.connect("reroll_pressed", _on_reward_reroll)
     _debug.connect("give_card", _on_dbg_give)
     _debug.connect("give_gold", _on_dbg_gold)
     _debug.connect("skip_floor", _on_dbg_skip)
@@ -315,6 +318,20 @@ func _on_combat_ended() -> void:
     _update_phase()
 
 
+# --- reward (หลังจบเวฟ) ---
+func _on_reward_pick(index: int) -> void:
+    if GameSim.step(Game.state, {"type": &"pick_reward", "index": index}):
+        _reset_selection()
+        _refresh_planning()
+        _update_phase()
+
+
+func _on_reward_reroll() -> void:
+    if GameSim.step(Game.state, {"type": &"reroll_reward"}):
+        _reward.refresh()
+        _update_top()
+
+
 # --- blessing station ---
 func _on_blessing_pick() -> void:
     if GameSim.step(Game.state, {"type": &"pick_blessing"}):
@@ -360,11 +377,12 @@ func _refresh_event() -> void:
     var ev: StringName = Game.state.event
     var in_plan: bool = Game.state.phase == &"planning"
     var active: bool = in_plan and ev != &""
-    var windowed: bool = ev == &"shop" or ev == &"blessing"
+    var windowed: bool = ev == &"shop" or ev == &"blessing" or ev == &"reward"
     var show_win: bool = active and windowed and not _peek
     _shop.visible = ev == &"shop" and show_win
     _shop_continue.visible = ev == &"shop" and show_win
     _blessing.visible = ev == &"blessing" and show_win
+    _reward.visible = ev == &"reward" and show_win
     _expand_prompt.visible = active and ev == &"expand"
     _event_toggle.visible = active and windowed
     _event_toggle.text = "👁 ดูอีเวนต์" if _peek else "👁 ดูกระดาน"
@@ -373,6 +391,8 @@ func _refresh_event() -> void:
         _shop.refresh()
     if _blessing.visible:
         _blessing.refresh()
+    if _reward.visible:
+        _reward.refresh()
 
 
 func _refresh_planning() -> void:
@@ -404,6 +424,8 @@ func _update_top() -> void:
         ph = "พร"
     elif st.event == &"expand":
         ph = "ขยายพื้นที่"
+    elif st.event == &"reward":
+        ph = "รางวัล"
     _top.text = "ชั้น %d  ·  gold %d  ·  HP %d  ·  [%s]" % [st.floor_num, st.gold, st.base_hp, ph]
     # ปุ่มรีโรลสีศัตรู เฉพาะสถานี combat (planning ไม่มี event)
     _color_btn.visible = st.phase == &"planning" and st.event == &""
