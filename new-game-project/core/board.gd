@@ -89,10 +89,13 @@ static func use_card(state: GameState, data_id: StringName, slot: int) -> bool:
                 return false   # บัฟใช้กับทหารเท่านั้น
             for k in d.abilities:
                 target.abilities[k] = int(target.abilities.get(k, 0)) + int(d.abilities[k])
+                state.buff_events.append({"slot": slot, "kind": &"ability", "ability": k, "stacks": int(d.abilities[k])})
             return true
         CardData.Kind.TOME:
             for e in d.effects:
                 _apply_effect(target, e)
+                if e.action == EffectData.Action.MODIFY_STAT:
+                    state.buff_events.append({"slot": slot, "kind": &"stat", "stat": e.stat_name, "amount": e.value, "is_percent": e.is_percent})
             return true
     return false
 

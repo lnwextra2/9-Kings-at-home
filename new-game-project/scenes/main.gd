@@ -117,6 +117,7 @@ func _on_slot_clicked(idx: int) -> void:
             _sel_hand = -1
             _hand.set_selected(-1)
             _refresh_planning()
+            _flush_buff_pops()
             var occ = Game.state.board[idx]
             if occ is Dictionary:
                 _panel.show_current(occ)
@@ -131,6 +132,37 @@ func _on_slot_clicked(idx: int) -> void:
     else:
         _sel_slot = -1
         _panel.clear()
+
+
+## ระบายเลขบัฟที่ core ปล่อยไว้ → เด้งที่ช่องเป้าหมายบนกระดาน (เรียกหลัง refresh)
+func _flush_buff_pops() -> void:
+    for e in Game.state.buff_events:
+        _board.pop_buff(e.slot, _buff_text(e), _buff_color(e))
+    Game.state.buff_events.clear()
+
+
+func _buff_text(e: Dictionary) -> String:
+    if e.kind == &"stat":
+        var s: String = _stat_label(e.stat)
+        if e.is_percent:
+            return "+%d%% %s" % [int(round(float(e.amount) * 100.0)), s]
+        return "+%d %s" % [int(round(float(e.amount))), s]
+    return "+%d %s" % [int(e.stacks), str(e.ability)]   # ability buff
+
+
+func _buff_color(e: Dictionary) -> Color:
+    return Color(0.45, 0.95, 0.55) if e.kind == &"stat" else Color(0.55, 0.75, 1.0)
+
+
+## ชื่อย่อ stat สำหรับโชว์ (เพิ่ม stat ใหม่ที่นี่)
+func _stat_label(s: StringName) -> String:
+    match s:
+        &"attack": return "dmg"
+        &"max_hp": return "hp"
+        &"attack_cd": return "aspd"
+        &"count": return "count"
+        &"move_speed": return "spd"
+        _: return str(s)
 
 
 func _on_sell() -> void:

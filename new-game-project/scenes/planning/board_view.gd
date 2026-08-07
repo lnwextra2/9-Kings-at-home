@@ -89,3 +89,25 @@ func _stars(level: int) -> String:
 
 func _emit_slot(idx: int) -> void:
     slot_clicked.emit(idx)
+
+
+## เลขบัฟเด้งที่ช่อง idx (Label ลูกของ cell → ลอยขึ้น+จาง แล้ว free เอง)
+## เรียกหลัง refresh() เสมอ (cell เป็นตัวใหม่). ปรับหน้าตาได้ที่ @export ด้านบน/ค่าในนี้
+func pop_buff(idx: int, text: String, color: Color = Color(0.45, 0.95, 0.55)) -> void:
+    if idx < 0 or idx >= _grid.get_child_count():
+        return
+    var cell := _grid.get_child(idx) as Control
+    var lbl := Label.new()
+    lbl.text = text
+    lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    lbl.z_index = 20
+    lbl.add_theme_font_size_override("font_size", 13)
+    lbl.add_theme_color_override("font_color", color)
+    lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+    lbl.add_theme_constant_override("outline_size", 4)
+    lbl.position = Vector2(6, cell_size * 0.32)
+    cell.add_child(lbl)
+    var tw := lbl.create_tween().set_parallel(true)
+    tw.tween_property(lbl, "position:y", lbl.position.y - 30.0, 0.75).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.tween_property(lbl, "modulate:a", 0.0, 0.75).set_ease(Tween.EASE_IN)
+    tw.chain().tween_callback(lbl.queue_free)

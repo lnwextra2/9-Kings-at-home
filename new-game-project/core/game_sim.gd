@@ -93,6 +93,7 @@ static func _start_combat(state: GameState) -> bool:
     state.base_unit = _find_base_unit(state)
     state.projectiles = []
     state.damage_events = []
+    state.buff_events = []
     state.combat_time = 0.0
     state.result = &""
     state.phase = &"combat"
