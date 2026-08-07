@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://mint0smith0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" path="res://data_types/effect_data.gd" id="2"]
+
+[sub_resource type="Resource" id="eff_smith"]
+script = ExtResource("2")
+trigger = 0
+action = 1
+target = 1
+value = 0.02
+scales_with_level = true
+stat_name = &"attack"
+is_percent = true
+
+[resource]
+script = ExtResource("1")
+id = &"mint_smith"
+display_name = "ช่างตีเหล็ก"
+color = &"mint"
+kind = 2
+description = "จบเทิร์น: +2% ดาเมจ ให้ของข้างเคียง (4 ทิศ) ทำ Lv ครั้ง = x1.02^Lv ทบทุกเทิร์น"
+max_hp = 0.0
+attack = 0.0
+attack_range = 0.0
+move_speed = 0.0
+base_count = 1
+effects = Array[EffectData]([SubResource("eff_smith")])
+cost = 5

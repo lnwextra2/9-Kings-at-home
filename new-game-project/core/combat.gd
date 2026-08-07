@@ -96,14 +96,17 @@ static func _do_attack(state: GameState, cfg: BattleConfig, i: int, tid: int) ->
     var t: Dictionary = state.units[tid]
     u.attack_timer = u.attack_cd
     u.attacking = true
+    var dmg: float = u.attack
+    if u.crit > 0.0 and state.rng.randf() < u.crit:   # คริ = ดาเมจ × crit_mult (สุ่มผ่าน state.rng)
+        dmg *= cfg.crit_mult
     if u.attack_range > cfg.ranged_min_range:
         state.projectiles.append({
             "x": u.x, "y": u.y, "team": u.team,
-            "target_id": tid, "damage": u.attack, "splash": u.splash,
+            "target_id": tid, "damage": dmg, "splash": u.splash,
             "speed": cfg.projectile_speed, "alive": true,
         })
     else:
-        _deal(state, u.team, t.x, t.y, u.attack, u.splash, tid)
+        _deal(state, u.team, t.x, t.y, dmg, u.splash, tid)
 
 
 static func _deal(state: GameState, team: int, x: float, y: float, dmg: float, splash: float, tid: int) -> void:

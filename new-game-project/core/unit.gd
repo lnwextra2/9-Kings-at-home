@@ -10,6 +10,7 @@ static func from_instance(team: int, inst: Dictionary, x: float, y: float) -> Di
     u.hp = inst.cur_hp
     u.max_hp = inst.cur_hp
     u.attack = inst.cur_attack
+    u.crit = inst.cur_crit
     u.attack_cd = d.attack_cd / maxf(inst.cur_aspd, 0.01)   # aspd_mult ย่น cooldown
     if u.immobile and u.attack > 0.0:
         u.attack_range = 1.0e9   # ป้อม/ฐาน (อยู่กับที่ + โจมตี) = ยิงทั้งสนาม
@@ -32,6 +33,7 @@ static func from_data_scaled(team: int, data_id: StringName, x: float, y: float,
     u.hp = d.max_hp * scale
     u.max_hp = u.hp
     u.attack = d.attack * scale
+    u.crit = d.crit
     u.attack_cd = d.attack_cd
     return u
 
@@ -58,6 +60,7 @@ static func _blank(team: int, d: CardData, x: float, y: float) -> Dictionary:
         "x": x, "y": y,
         "hp": 0.0, "max_hp": 0.0,
         "attack": 0.0,
+        "crit": 0.0,
         "attack_cd": 1.0,
         "attack_range": d.attack_range,
         "move_speed": d.move_speed,

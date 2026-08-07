@@ -14,6 +14,7 @@ static func make_instance(data_id: StringName) -> Dictionary:
         "cur_hp": d.max_hp,
         "cur_attack": d.attack,
         "cur_aspd": 1.0,          # ตัวคูณความเร็วโจมตี (1.0 = ปกติ)
+        "cur_crit": d.crit,       # โอกาสคริ (additive growth)
         "cur_count": cnt,         # soldier = base_count; โครงสร้าง = 1
         "abilities": d.abilities.duplicate(true),
         "no_spawn": false,
@@ -29,6 +30,7 @@ static func make_instance_at(data_id: StringName, level: int) -> Dictionary:
     inst.cur_hp = d.max_hp * pow(1.0 + d.growth_hp, g)
     inst.cur_attack = d.attack * pow(1.0 + d.growth_attack, g)
     inst.cur_aspd = pow(1.0 + d.growth_attack_speed, g)
+    inst.cur_crit = minf(d.crit + d.growth_crit * g, 1.0)   # crit โต additive
     inst.cur_count = d.base_count * level
     return inst
 
@@ -42,6 +44,7 @@ static func level_up(card: Dictionary) -> void:
     card.cur_hp *= (1.0 + d.growth_hp)
     card.cur_attack *= (1.0 + d.growth_attack)
     card.cur_aspd *= (1.0 + d.growth_attack_speed)
+    card.cur_crit = minf(card.cur_crit + d.growth_crit, 1.0)   # crit โต additive
     if d.kind == CardData.Kind.SOLDIER:
         card.cur_count += d.base_count   # Lv1=bc, Lv2=2·bc, Lv3=3·bc
 

@@ -20,12 +20,14 @@ enum Kind { SOLDIER, BASE, BUILDING, TURRET, BUFF, TOME }
 @export var attack_range: float = 30.0
 @export var move_speed: float = 60.0      # px/วินาที (0 = อยู่กับที่)
 @export var splash_radius: float = 0.0
+@export var crit: float = 0.0             # โอกาสคริติคอล 0..1 (คริ = ดาเมจ × crit_mult)
 
 @export_group("Scaling")
 @export var base_count: int = 1           # จำนวนทหารพื้นฐาน (soldier); count = base_count × level
 @export var growth_hp: float = 0.3        # compound %: stat × (1+growth)^(lv-1)
 @export var growth_attack: float = 0.3
 @export var growth_attack_speed: float = 0.1
+@export var growth_crit: float = 0.0      # +crit ต่อ level (additive; cap 1.0)
 
 @export_group("Behavior")
 @export var abilities: Dictionary = {}    # {ability_id: base_stacks} — soldier ability

@@ -24,3 +24,4 @@ retarget_interval = 0.2
 projectile_speed = 340.0
 ranged_min_range = 60.0
 hash_cell = 64.0
+crit_mult = 2.0
