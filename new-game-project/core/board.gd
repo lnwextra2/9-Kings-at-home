@@ -20,6 +20,22 @@ static func neighbors_4(state: GameState, idx: int) -> Array:
     return out
 
 
+## index รอบ 8 ทิศ (ตั้งฉาก+ทแยง) ที่อยู่ในกระดาน — geometry ล้วน (ใช้ปลดล็อกรอบๆ)
+static func surrounding_8(state: GameState, idx: int) -> Array:
+    var col: int = idx % state.cols
+    var row: int = idx / state.cols
+    var out: Array = []
+    for dr in [-1, 0, 1]:
+        for dc in [-1, 0, 1]:
+            if dr == 0 and dc == 0:
+                continue
+            var r: int = row + dr
+            var c: int = col + dc
+            if r >= 0 and r < state.rows and c >= 0 and c < state.cols:
+                out.append(r * state.cols + c)
+    return out
+
+
 ## หา slot ของฐานบนกระดาน (-1 = ยังไม่มี)
 static func find_base(state: GameState) -> int:
     for i in state.board.size():
@@ -76,9 +92,12 @@ static func use_card(state: GameState, data_id: StringName, slot: int) -> bool:
     var d: CardData = Content.card(data_id)
     if d == null or slot < 0 or slot >= state.board.size():
         return false
+    if d.hooks_script != null:                     # tier 2: การ์ดพิเศษตัดสินเป้า/กติกาเอง
+        var hook: CardHooks = d.hooks_script.new()
+        return hook.on_use(state, data_id, slot)
     var target = state.board[slot]
     if not (target is Dictionary):
-        return false   # ต้องมีการ์ดเป้าหมาย
+        return false   # ต้องมีการ์ดเป้าหมาย (tier-1 buff/tome)
     match d.kind:
         CardData.Kind.BUFF:
             var td: CardData = Content.card(target.data_id)

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://dak0expand0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Script" path="res://core/hooks/expand_hooks.gd" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"expand"
+display_name = "ขยาย"
+color = &"gray"
+kind = 5
+description = "โทมใช้ครั้งเดียว: ใช้บนช่องที่มีการ์ด → ทำลายการ์ดนั้น → รับการ์ด 1×เลเวลใบ → ปลดล็อกช่องรอบๆ"
+max_hp = 0.0
+attack = 0.0
+move_speed = 0.0
+base_count = 1
+cost = 6
+hooks_script = ExtResource("2")
