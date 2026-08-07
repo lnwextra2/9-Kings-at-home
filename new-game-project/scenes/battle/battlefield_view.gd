@@ -43,7 +43,7 @@ func _sync_multimesh(st: GameState) -> void:
     var t: float = st.combat_time
     var groups: Dictionary = {}
     for u in st.units:
-        if u.alive and Content.card(u.data_id).sprite != null:
+        if u.alive and not u.is_wall and Content.card(u.data_id).sprite != null:
             var arr = groups.get(u.data_id)
             if arr == null:
                 arr = []
@@ -104,6 +104,16 @@ func _make_quad(w: float, h: float) -> ArrayMesh:
     return mesh
 
 
+## กำแพง = แนวตั้งยาวทั้งสนาม สีเปลี่ยนตาม HP + มิเตอร์ HP ด้านบน
+func _draw_wall(u: Dictionary, cfg: BattleConfig) -> void:
+    var f: float = clampf(u.hp / u.max_hp, 0.0, 1.0)
+    var w: float = 14.0
+    var x: float = field_origin.x + u.x - w * 0.5
+    draw_rect(Rect2(x, field_origin.y, w, cfg.height), Color(0.55, 0.55, 0.6).lerp(Color(0.72, 0.26, 0.24), 1.0 - f))
+    draw_rect(Rect2(x - 3.0, field_origin.y - 7.0, w + 6.0, 3.0), Color(0, 0, 0, 0.6))
+    draw_rect(Rect2(x - 3.0, field_origin.y - 7.0, (w + 6.0) * f, 3.0), Color(0.3, 0.9, 0.35))
+
+
 func _radius_for(d: CardData) -> float:
     if d.kind == CardData.Kind.BASE:
         return 12.0
@@ -128,6 +138,9 @@ func _draw() -> void:
     # HP bar (สีตามฝั่ง: เรา=เขียว ศัตรู=แดง) + fallback สี่เหลี่ยมถ้าไม่มี sprite
     for u in st.units:
         if not u.alive:
+            continue
+        if u.is_wall:
+            _draw_wall(u, cfg)
             continue
         var d: CardData = Content.card(u.data_id)
         var pos: Vector2 = field_origin + Vector2(u.x, u.y)

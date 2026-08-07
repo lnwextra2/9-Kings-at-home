@@ -33,9 +33,17 @@ static func tick(state: GameState, dt: float) -> void:
         var tid: int = u.target_id
         if tid != -1:
             var t: Dictionary = units[tid]
-            var dx: float = t.x - u.x
-            var dy: float = t.y - u.y
-            var dist: float = sqrt(dx * dx + dy * dy)
+            var dx: float
+            var dy: float
+            var dist: float
+            if t.is_wall:
+                dx = t.x - u.x   # แนวกั้น: ระยะแนวนอน, เข้าหาเส้นกำแพง ณ y ตัวเอง
+                dy = 0.0
+                dist = absf(dx)
+            else:
+                dx = t.x - u.x
+                dy = t.y - u.y
+                dist = sqrt(dx * dx + dy * dy)
             if dist <= u.attack_range:
                 if u.attack > 0.0 and u.attack_timer <= 0.0:
                     _do_attack(state, cfg, i, tid)

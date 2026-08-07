@@ -11,6 +11,18 @@ static func from_instance(team: int, inst: Dictionary, x: float, y: float) -> Di
     u.max_hp = inst.cur_hp
     u.attack = inst.cur_attack
     u.attack_cd = d.attack_cd / maxf(inst.cur_aspd, 0.01)   # aspd_mult ย่น cooldown
+    if u.immobile and u.attack > 0.0:
+        u.attack_range = 1.0e9   # ป้อม/ฐาน (อยู่กับที่ + โจมตี) = ยิงทั้งสนาม
+    return u
+
+
+## กำแพง = 1 unit รวม HP (ต่อให้วางหลายใบ) — เป็นแนวกั้น (hitbox แนวตั้งทั้งสนาม)
+static func make_wall(hp: float, x: float, y: float) -> Dictionary:
+    var d: CardData = Content.card(&"wall")
+    var u := _blank(0, d, x, y)
+    u.hp = hp
+    u.max_hp = hp
+    u.is_wall = true
     return u
 
 
@@ -53,6 +65,7 @@ static func _blank(team: int, d: CardData, x: float, y: float) -> Dictionary:
         "targetable": targetable,
         "immobile": immobile,
         "is_base": is_base,
+        "is_wall": false,
         "attack_timer": 0.0,      # นับถอยหลังถึงตีครั้งถัดไป
         "target_id": -1,
         "retarget_timer": 0.0,

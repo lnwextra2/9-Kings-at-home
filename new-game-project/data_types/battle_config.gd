@@ -18,6 +18,13 @@ extends Resource
 @export var enemy_y_margin: float = 40.0
 @export var enemy_spread: float = 26.0
 
+@export_group("Our Formation (soldiers + wall)")
+@export var front_x: float = 520.0       # แนวหน้าสุดของทหาร (แถวแรก)
+@export var col_dx: float = 24.0         # ระยะห่างระหว่างแถว (ลึกไปทางฐาน)
+@export var row_dy: float = 24.0         # ระยะห่างระหว่างตัวในแถวเดียวกัน
+@export var max_cols: int = 6            # จำนวนแถวสูงสุด (กันสปอว์นไกลไปฝั่งศัตรู; เกินแล้วบีบระยะ)
+@export var wall_x: float = 380.0        # ตำแหน่งกำแพง (หลังทหาร)
+
 @export_group("Combat")
 @export var base_touch_radius: float = 28.0   # ศัตรูเข้าใกล้ฐานเท่านี้ = แตะ (จบเวฟ)
 @export var retarget_interval: float = 0.2
