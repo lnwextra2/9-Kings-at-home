@@ -21,6 +21,7 @@ var _shop
 var _reward
 var _debug
 var _devbtn: Button
+var _color_btn: Button
 var _sel_hand: int = -1
 var _sel_slot: int = -1
 
@@ -63,8 +64,33 @@ func _ready() -> void:
     _devbtn.offset_bottom = 30.0
     add_child(_devbtn)
     _devbtn.pressed.connect(func(): _debug.visible = not _debug.visible)
+    _color_btn = Button.new()
+    _color_btn.focus_mode = Control.FOCUS_NONE
+    _color_btn.anchor_left = 0.5
+    _color_btn.anchor_right = 0.5
+    _color_btn.offset_left = -170.0
+    _color_btn.offset_right = 170.0
+    _color_btn.offset_top = 6.0
+    _color_btn.offset_bottom = 30.0
+    add_child(_color_btn)
+    _color_btn.pressed.connect(_on_reroll_color)
     _refresh_planning()
     _update_phase()
+
+
+func _on_reroll_color() -> void:
+    if GameSim.step(Game.state, {"type": &"reroll_color"}):
+        _refresh_planning()
+
+
+func _color_name(c: StringName) -> String:
+    match c:
+        &"blue": return "ฟ้า"
+        &"red": return "แดง"
+        &"green": return "เขียว"
+        &"gold": return "ทอง"
+        &"mint": return "มินต์"
+        _: return str(c)
 
 
 func _on_dbg_give(id: StringName) -> void:
@@ -195,6 +221,8 @@ func _update_phase() -> void:
         _reward.visible = false
     if ph != &"gameover":
         _overlay.visible = false
+    if _color_btn:
+        _color_btn.visible = ph == &"planning"
     _update_top()
 
 
@@ -224,3 +252,6 @@ func _update_top() -> void:
     elif st.phase == &"gameover":
         ph = "จบเกม"
     _top.text = "ชั้น %d  ·  gold %d  ·  HP %d  ·  [%s]" % [st.floor_num, st.gold, st.base_hp, ph]
+    if _color_btn:
+        _color_btn.text = "ศัตรูเวฟนี้: สี%s   ·   รีโรล %dg" % [_color_name(st.wave_color), st.enemy_reroll_cost]
+        _color_btn.disabled = st.gold < st.enemy_reroll_cost
