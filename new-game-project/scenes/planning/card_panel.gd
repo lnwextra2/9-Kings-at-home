@@ -7,9 +7,12 @@ extends Control
 @onready var _badge: Label = $Card/Badge
 @onready var _name: Label = $Card/NameLabel
 @onready var _desc: Label = $Card/Desc
+signal sell_pressed
+
 @onready var _stats: Label = $Stats
 
 var _portrait: TextureRect
+var _sell: Button
 
 
 func _ready() -> void:
@@ -21,6 +24,15 @@ func _ready() -> void:
     _portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     _portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
     _img.get_parent().add_child(_portrait)
+    _sell = Button.new()
+    _sell.text = "ขาย"
+    _sell.position = Vector2(2, 474)
+    _sell.custom_minimum_size = Vector2(196, 28)
+    _sell.size = Vector2(196, 28)
+    _sell.focus_mode = Control.FOCUS_NONE
+    _sell.visible = false
+    _sell.pressed.connect(func(): sell_pressed.emit())
+    add_child(_sell)
 
 
 func clear() -> void:
@@ -34,6 +46,8 @@ func show_base(data_id: StringName) -> void:
         return
     _fill_card(d, -1, d.abilities)
     _stats.text = _stat_lines_base(d)
+    _sell.text = "ขาย (%dg)" % Game.state.sell_value
+    _sell.visible = true
     visible = true
 
 
@@ -44,6 +58,7 @@ func show_current(card: Dictionary) -> void:
         return
     _fill_card(d, int(card.level), card.abilities)
     _stats.text = _stat_lines_current(card, d)
+    _sell.visible = false
     visible = true
 
 

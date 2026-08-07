@@ -11,3 +11,4 @@ extends Resource
 @export_group("Run Start")
 @export var start_gold: int = 30
 @export var base_hp: int = 3         # ชีวิตบ้าน — แพ้เวฟ −1, Boss −3, 0 = จบ Run
+@export var sell_value: int = 9      # ขายการ์ดในมือได้กี่ gold

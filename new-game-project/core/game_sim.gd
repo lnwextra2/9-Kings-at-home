@@ -10,6 +10,8 @@ static func step(state: GameState, action: Dictionary) -> bool:
             return _place_card(state, action.hand_index, action.slot)
         &"use_card":
             return _use_card(state, action.hand_index, action.slot)
+        &"sell_card":
+            return _sell_card(state, action.hand_index)
         &"end_turn":
             return _start_combat(state)
         &"buy":
@@ -49,6 +51,15 @@ static func _dbg_spawn_enemies(state: GameState, count: int) -> void:
         var y: float = float(state.rng.randi_range(int(cfg.enemy_y_margin), int(cfg.height - cfg.enemy_y_margin)))
         var x: float = cfg.enemy_x + float(state.rng.randi_range(-20, 40))
         state.units.append(Unit.from_data_scaled(1, WaveGen.ENEMY_ID, x, y, scale))
+
+
+static func _sell_card(state: GameState, hand_index: int) -> bool:
+    if hand_index < 0 or hand_index >= state.hand.size():
+        return false
+    state.hand.remove_at(hand_index)
+    state.gold += state.sell_value
+    state.gold_earned += state.sell_value
+    return true
 
 
 static func _use_card(state: GameState, hand_index: int, slot: int) -> bool:

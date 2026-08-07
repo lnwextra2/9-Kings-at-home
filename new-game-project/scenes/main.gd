@@ -33,6 +33,7 @@ func _ready() -> void:
     _continue.pressed.connect(_on_gameover_continue)
     _panel = CARD_PANEL.instantiate()
     _planning.add_child(_panel)
+    _panel.connect("sell_pressed", _on_sell)
     _panel.clear()
     _shop = SHOP_VIEW.instantiate()
     _planning.add_child(_shop)
@@ -119,6 +120,16 @@ func _on_slot_clicked(idx: int) -> void:
     else:
         _sel_slot = -1
         _panel.clear()
+
+
+func _on_sell() -> void:
+    if _sel_hand < 0:
+        return
+    if GameSim.step(Game.state, {"type": &"sell_card", "hand_index": _sel_hand}):
+        _sel_hand = -1
+        _hand.set_selected(-1)
+        _panel.clear()
+        _refresh_planning()
 
 
 # --- shop ---

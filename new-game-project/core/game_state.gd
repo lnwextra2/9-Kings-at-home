@@ -8,6 +8,7 @@ var gold: int = 30
 var gold_earned: int = 0               # ทองสะสมทั้ง run (สำหรับหน้าสรุป)
 var base_hp: int = 3                   # ชีวิตบ้าน
 var kills: int = 0                     # ศัตรูที่ฆ่าทั้ง run (สำหรับหน้าสรุป)
+var sell_value: int = 9                # ขายการ์ดในมือได้กี่ gold
 
 var cols: int = 5
 var rows: int = 5
@@ -39,6 +40,7 @@ static func new_run(cfg: RunConfig) -> GameState:
 	s.gold = cfg.start_gold
 	s.gold_earned = cfg.start_gold
 	s.base_hp = cfg.base_hp
+	s.sell_value = cfg.sell_value
 	s.board.resize(s.cols * s.rows)
 
 	var mx: int = int((s.cols - cfg.unlocked_cols) / 2.0)   # margin ซ้าย/บนของบล็อกกลาง
