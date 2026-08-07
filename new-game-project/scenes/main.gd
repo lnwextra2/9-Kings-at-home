@@ -18,9 +18,14 @@ extends Control
 @onready var _result_label: Label = $ResultOverlay/Panel/VBox/ResultLabel
 @onready var _continue: Button = $ResultOverlay/Panel/VBox/ContinueButton
 
+@export_group("End-turn buff sequence")   # จังหวะเลขบัฟเด้งตอนจบเทิร์นก่อนเข้ารบ — จูนได้
+@export var buff_burst_delay: float = 0.20   # เว้นระหว่างแต่ละ burst (สิ่งก่อสร้าง/ครั้ง)
+@export var buff_tail: float = 0.6           # หน่วงท้ายให้เห็น burst สุดท้าย ก่อนเข้าสนามรบ
+
 var _color_sb: StyleBoxFlat
 var _sel_hand: int = -1
 var _sel_slot: int = -1
+var _resolving: bool = false   # กำลังเล่นอนิเมชั่นจบเทิร์น (บล็อก input)
 
 
 func _ready() -> void:
@@ -110,6 +115,8 @@ func _on_card_selected(i: int) -> void:
 
 
 func _on_slot_clicked(idx: int) -> void:
+    if _resolving:
+        return
     if _sel_hand >= 0:
         var d: CardData = Content.card(Game.state.hand[_sel_hand])
         var act: StringName = &"use_card" if (d.kind == CardData.Kind.BUFF or d.kind == CardData.Kind.TOME) else &"place_card"
@@ -142,16 +149,22 @@ func _flush_buff_pops() -> void:
 
 
 func _buff_text(e: Dictionary) -> String:
-    if e.kind == &"stat":
-        var s: String = _stat_label(e.stat)
-        if e.is_percent:
-            return "+%d%% %s" % [int(round(float(e.amount) * 100.0)), s]
-        return "+%d %s" % [int(round(float(e.amount))), s]
+    match e.kind:
+        &"stat":
+            var s: String = _stat_label(e.stat)
+            if e.is_percent:
+                return "+%d%% %s" % [int(round(float(e.amount) * 100.0)), s]
+            return "+%d %s" % [int(round(float(e.amount))), s]
+        &"gold":
+            return "+%dg" % int(e.amount)
     return "+%d %s" % [int(e.stacks), str(e.ability)]   # ability buff
 
 
 func _buff_color(e: Dictionary) -> Color:
-    return Color(0.45, 0.95, 0.55) if e.kind == &"stat" else Color(0.55, 0.75, 1.0)
+    match e.kind:
+        &"stat": return Color(0.45, 0.95, 0.55)   # เขียว
+        &"gold": return Color(0.98, 0.82, 0.30)   # ทอง
+    return Color(0.55, 0.75, 1.0)                  # ฟ้า = ability
 
 
 ## ชื่อย่อ stat สำหรับโชว์ (เพิ่ม stat ใหม่ที่นี่)
@@ -187,8 +200,47 @@ func _on_shop_reroll() -> void:
 
 
 # --- combat ---
+## กดเริ่มรบ: ยิงบัฟจบเทิร์น → board ค้างเล่นเลขบัฟเรียงลำดับ → แล้วค่อยเข้าสนามรบ
 func _on_fight() -> void:
-    GameSim.step(Game.state, {"type": &"end_turn"})
+    if _resolving:
+        return
+    GameSim.step(Game.state, {"type": &"resolve_turn"})   # บัฟถูก apply แล้ว, ได้ buff_events
+    _board.refresh()                                       # โชว์ stat/count ใหม่บนกระดานก่อนเด้งเลข
+    var events: Array = Game.state.buff_events.duplicate()
+    Game.state.buff_events.clear()
+    if events.is_empty():
+        _begin_combat()
+        return
+    _resolving = true
+    _fight.disabled = true
+    _play_buff_sequence(events)
+
+
+## แบ่ง events ตาม burst แล้วตั้งเวลาเด้งเป็นสเต็ป (burst เดียวกัน = พร้อมกัน)
+func _play_buff_sequence(events: Array) -> void:
+    var by_burst: Dictionary = {}
+    var max_b: int = 0
+    for e in events:
+        var b: int = int(e.get("burst", 0))
+        max_b = maxi(max_b, b)
+        if not by_burst.has(b):
+            by_burst[b] = []
+        by_burst[b].append(e)
+    for b in by_burst:
+        var delay: float = float(b) * buff_burst_delay
+        get_tree().create_timer(delay).timeout.connect(_pop_group.bind(by_burst[b]))
+    var total: float = float(max_b) * buff_burst_delay + buff_tail
+    get_tree().create_timer(total).timeout.connect(_begin_combat)
+
+
+func _pop_group(group: Array) -> void:
+    for e in group:
+        _board.pop_buff(e.slot, _buff_text(e), _buff_color(e))
+
+
+func _begin_combat() -> void:
+    _resolving = false
+    GameSim.step(Game.state, {"type": &"begin_combat"})
     _battle.start()
     _update_phase()
 

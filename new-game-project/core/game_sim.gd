@@ -12,8 +12,13 @@ static func step(state: GameState, action: Dictionary) -> bool:
             return _use_card(state, action.hand_index, action.slot)
         &"sell_card":
             return _sell_card(state, action.hand_index)
+        &"resolve_turn":
+            return _resolve_turn(state)
+        &"begin_combat":
+            return _begin_combat(state)
         &"end_turn":
-            return _start_combat(state)
+            _resolve_turn(state)
+            return _begin_combat(state)
         &"buy":
             return Shop.buy(state, action.shop_index)
         &"reroll_shop":
@@ -84,9 +89,16 @@ static func _place_card(state: GameState, hand_index: int, slot: int) -> bool:
     return false
 
 
-## จบเทิร์น → เข้าสนามรบ (TurnResolver on_end_turn = M3)
-static func _start_combat(state: GameState) -> bool:
-    TurnResolver.resolve(state)   # ยิง on_end_turn (ฟาร์มให้ทอง ฯลฯ) ก่อนสปอว์น
+## จบเทิร์น: ยิง END_TURN effects (ฟาร์ม/ตลาด ฯลฯ) → ปล่อย buff_events ให้ view เล่นก่อน
+## phase ยัง planning อยู่ (board ค้างโชว์เลขบัฟ) — combat เริ่มตอน view สั่ง begin_combat
+static func _resolve_turn(state: GameState) -> bool:
+    state.buff_events = []
+    TurnResolver.resolve(state)
+    return true
+
+
+## เข้าสนามรบจริง (สปอว์นเรา+ศัตรูจากกระดานที่บัฟแล้ว)
+static func _begin_combat(state: GameState) -> bool:
     var cfg: BattleConfig = state.battle_cfg
     state.units = Spawner.spawn_player(state, cfg)
     state.units.append_array(WaveGen.make_wave(state, cfg))
