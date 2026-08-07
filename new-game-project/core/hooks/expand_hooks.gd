@@ -22,8 +22,8 @@ func on_use(state: GameState, _data_id: StringName, slot: int) -> bool:
 		for _i in lv:
 			state.hand.append(state.rng.pick(pool).id)
 
-	# 3) ปลดล็อกช่องรอบๆ 8 ทิศที่ยังล็อกอยู่ (ขยายดินแดนออกจากช่องที่ใช้)
-	for n in Board.surrounding_8(state, slot):
+	# 3) ปลดล็อกช่องแนว + (4 ทิศตั้งฉาก) ที่ยังล็อกอยู่ (ขยายดินแดนออกจากช่องที่ใช้)
+	for n in Board.neighbors_4(state, slot):
 		if state.is_locked(n):
 			state.board[n] = null
 	return true

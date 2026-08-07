@@ -20,22 +20,6 @@ static func neighbors_4(state: GameState, idx: int) -> Array:
     return out
 
 
-## index รอบ 8 ทิศ (ตั้งฉาก+ทแยง) ที่อยู่ในกระดาน — geometry ล้วน (ใช้ปลดล็อกรอบๆ)
-static func surrounding_8(state: GameState, idx: int) -> Array:
-    var col: int = idx % state.cols
-    var row: int = idx / state.cols
-    var out: Array = []
-    for dr in [-1, 0, 1]:
-        for dc in [-1, 0, 1]:
-            if dr == 0 and dc == 0:
-                continue
-            var r: int = row + dr
-            var c: int = col + dc
-            if r >= 0 and r < state.rows and c >= 0 and c < state.cols:
-                out.append(r * state.cols + c)
-    return out
-
-
 ## หา slot ของฐานบนกระดาน (-1 = ยังไม่มี)
 static func find_base(state: GameState) -> int:
     for i in state.board.size():
