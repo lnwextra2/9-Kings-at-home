@@ -33,21 +33,34 @@ static func spawn_player(state: GameState, cfg: BattleConfig) -> Array:
 
 
 static func _place_formation(out: Array, soldiers: Array, cfg: BattleConfig) -> void:
-    var total: int = soldiers.size()
+    var melee: Array = []
+    var ranged: Array = []
+    for c in soldiers:
+        if Content.card(c.data_id).attack_range > cfg.ranged_min_range:
+            ranged.append(c)
+        else:
+            melee.append(c)
+    var melee_cols: int = _fill_group(out, melee, cfg, cfg.front_x)          # ตีใกล้ = แถวหน้า
+    _fill_group(out, ranged, cfg, cfg.front_x - melee_cols * cfg.col_dx)     # ยิงไกล = แถวหลัง
+
+
+## เติมทหาร 1 กลุ่มเป็นคอลัมน์ (แนวลึกไปทางฐาน) — กระจายเต็มความสูงต่อคอลัมน์ (จัดกึ่งกลาง)
+## คืนจำนวนคอลัมน์ที่ใช้
+static func _fill_group(out: Array, group: Array, cfg: BattleConfig, front: float) -> int:
+    var total: int = group.size()
     if total == 0:
-        return
+        return 0
     var margin: float = cfg.enemy_y_margin
     var zone_h: float = cfg.height - 2.0 * margin
-    var rows: int = maxi(1, int(zone_h / cfg.row_dy))
-    var cols: int = int(ceil(float(total) / float(rows)))
-    var rdy: float = cfg.row_dy
-    if cols > cfg.max_cols:
-        cols = cfg.max_cols
-        rows = int(ceil(float(total) / float(cols)))
-        rdy = zone_h / float(rows)   # แถวเต็ม max แล้ว → บีบระยะในแถวให้พอ
+    var max_rows: int = maxi(1, int(zone_h / cfg.row_dy))
+    var cols: int = clampi(int(ceil(float(total) / float(max_rows))), 1, cfg.max_cols)
+    var base_n: int = total / cols
+    var rem: int = total % cols
     for i in total:
-        var col: int = i / rows
-        var row: int = i % rows
-        var x: float = cfg.front_x - col * cfg.col_dx
-        var y: float = margin + row * rdy
-        out.append(Unit.from_instance(0, soldiers[i], x, y))
+        var col: int = i % cols
+        var row: int = i / cols
+        var count_in_col: int = base_n + (1 if col < rem else 0)   # จำนวนตัวในคอลัมน์นี้
+        var x: float = front - col * cfg.col_dx
+        var y: float = margin + (row + 0.5) * (zone_h / float(count_in_col))   # กระจายเต็มความสูง
+        out.append(Unit.from_instance(0, group[i], x, y))
+    return cols
