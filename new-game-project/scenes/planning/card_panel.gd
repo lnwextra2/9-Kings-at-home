@@ -128,6 +128,11 @@ func _color_of(c: StringName) -> Color:
     match c:
         &"blue": return Color(0.24, 0.40, 0.72)
         &"red": return Color(0.72, 0.26, 0.24)
+        &"mint": return Color(0.20, 0.55, 0.50)
         &"gold": return Color(0.75, 0.60, 0.20)
         &"green": return Color(0.28, 0.55, 0.32)
+        &"gray": return Color(0.42, 0.45, 0.50)
+        &"purple": return Color(0.48, 0.34, 0.66)
+        &"orange": return Color(0.74, 0.46, 0.20)
+        &"indigo": return Color(0.32, 0.34, 0.66)
         _: return Color(0.40, 0.42, 0.48)
