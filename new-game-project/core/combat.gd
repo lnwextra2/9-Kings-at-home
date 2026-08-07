@@ -93,9 +93,23 @@ static func _rush_base(state: GameState, cfg: BattleConfig, u: Dictionary, dt: f
 
 static func _do_attack(state: GameState, cfg: BattleConfig, i: int, tid: int) -> void:
     var u: Dictionary = state.units[i]
-    var t: Dictionary = state.units[tid]
     u.attack_timer = u.attack_cd
     u.attacking = true
+    if u.shots <= 1:
+        _fire_one(state, cfg, u, tid)   # ปกติ: ยิงเป้าเดิม (ใกล้สุด)
+        return
+    # multishot: N นัด สุ่มเป้าอิสระ (สุ่มซ้ำตัวเดิมได้ → บอสเดี่ยวกินหมด)
+    var enemies: Array = _alive_enemies(state, u.team)
+    if enemies.is_empty():
+        return
+    for _s in u.shots:
+        var rt: int = enemies[state.rng.randi_range(0, enemies.size() - 1)]
+        _fire_one(state, cfg, u, rt)
+
+
+## ยิง 1 นัดใส่ target tid — roll crit ต่อนัด แล้วยิง projectile (ranged) หรือลงดาเมจ (melee)
+static func _fire_one(state: GameState, cfg: BattleConfig, u: Dictionary, tid: int) -> void:
+    var t: Dictionary = state.units[tid]
     var dmg: float = u.attack
     if u.crit > 0.0 and state.rng.randf() < u.crit:   # คริ = ดาเมจ × crit_mult (สุ่มผ่าน state.rng)
         dmg *= cfg.crit_mult
@@ -107,6 +121,16 @@ static func _do_attack(state: GameState, cfg: BattleConfig, i: int, tid: int) ->
         })
     else:
         _deal(state, u.team, t.x, t.y, dmg, u.splash, tid)
+
+
+## index ของศัตรูฝั่งตรงข้ามที่ยังตีได้ (สำหรับ multishot สุ่มเป้า)
+static func _alive_enemies(state: GameState, team: int) -> Array:
+    var out: Array = []
+    for i in state.units.size():
+        var o: Dictionary = state.units[i]
+        if o.alive and o.targetable and o.team != team:
+            out.append(i)
+    return out
 
 
 static func _deal(state: GameState, team: int, x: float, y: float, dmg: float, splash: float, tid: int) -> void:

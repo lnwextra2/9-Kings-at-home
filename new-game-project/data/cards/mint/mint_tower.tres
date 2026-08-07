@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://mint0tower0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ballista.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"mint_tower"
+display_name = "ป้อมยิงธนู"
+sprite = ExtResource("2")
+color = &"mint"
+kind = 3
+description = "ป้อม (ตีไม่โดน): ยิงธนูทั้งสนาม สุ่มเป้า cur_count นัด/ครั้ง (นัด = 3/6/9 ตาม Lv) — บอสเดี่ยวโดนทุกนัด"
+max_hp = 0.0
+attack = 22.0
+attack_cd = 2.0
+attack_range = 400.0
+move_speed = 0.0
+crit = 0.0
+base_count = 3
+growth_hp = 0.0
+growth_attack = 0.0
+growth_attack_speed = 0.0
+multishot = true
+cost = 6

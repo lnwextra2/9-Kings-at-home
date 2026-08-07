@@ -7,7 +7,7 @@ extends RefCounted
 ## สร้าง card instance ใหม่ (level 1) จาก CardData
 static func make_instance(data_id: StringName) -> Dictionary:
     var d: CardData = Content.card(data_id)
-    var cnt: int = d.base_count if d.kind == CardData.Kind.SOLDIER else 1
+    var cnt: int = d.base_count if (d.kind == CardData.Kind.SOLDIER or d.multishot) else 1
     return {
         "data_id": data_id,
         "level": 1,
@@ -45,8 +45,8 @@ static func level_up(card: Dictionary) -> void:
     card.cur_attack *= (1.0 + d.growth_attack)
     card.cur_aspd *= (1.0 + d.growth_attack_speed)
     card.cur_crit = minf(card.cur_crit + d.growth_crit, 1.0)   # crit โต additive
-    if d.kind == CardData.Kind.SOLDIER:
-        card.cur_count += d.base_count   # Lv1=bc, Lv2=2·bc, Lv3=3·bc
+    if d.kind == CardData.Kind.SOLDIER or d.multishot:
+        card.cur_count += d.base_count   # ทหาร = จำนวนตัว / multishot = จำนวนนัด (Lv1=bc, Lv2=2·bc, Lv3=3·bc)
 
 
 ## บัฟ % ทบต้น (mutate ตามลำดับที่เรียก)

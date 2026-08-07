@@ -33,6 +33,7 @@ enum Kind { SOLDIER, BASE, BUILDING, TURRET, BUFF, TOME }
 @export var abilities: Dictionary = {}    # {ability_id: base_stacks} — soldier ability
 @export var effects: Array[EffectData] = []   # tier 1 declarative
 @export var hooks_script: Script          # tier 2 script (การ์ดที่พิเศษจริงๆ)
+@export var multishot: bool = false       # true = ยิง cur_count นัด/ครั้ง สุ่มเป้า (ป้อมยิงหลายเป้า)
 
 @export_group("Economy")
 @export var cost: int = 4                 # ราคาในร้าน
