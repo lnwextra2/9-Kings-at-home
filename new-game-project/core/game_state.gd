@@ -27,6 +27,7 @@ var rng: Rng                           # สุ่มทั้งหมดผ่
 # combat (ใช้เฉพาะ phase = combat, transient — ไม่ต้อง serialize กลางสนาม)
 var units: Array = []                  # unit dict (M2); SoA เป็นงาน M3
 var projectiles: Array = []
+var damage_events: Array = []          # feed เลขดาเมจเด้ง (transient): {x,y,amount} — view drain ทิ้งทุกเฟรม
 var combat_time: float = 0.0
 var result: StringName = &""           # "" / "win" / "lose"
 var base_unit: int = -1                # index ใน units ของฐาน (จุดที่ศัตรูมุ่งเข้าเมื่อทหารเราหมด)

@@ -111,6 +111,8 @@ static func _deal(state: GameState, team: int, x: float, y: float, dmg: float, s
         var t: Dictionary = state.units[tid]
         if t.alive:
             t.hp -= dmg
+            if team == 0:   # เราตีศัตรู → ปล่อยเลขดาเมจให้ view วาด
+                state.damage_events.append({"x": t.x, "y": t.y, "amount": dmg})
         return
     for o in state.units:
         if o.alive and o.team != team:
@@ -118,6 +120,8 @@ static func _deal(state: GameState, team: int, x: float, y: float, dmg: float, s
             var dy: float = o.y - y
             if dx * dx + dy * dy <= splash * splash:
                 o.hp -= dmg
+                if team == 0:
+                    state.damage_events.append({"x": o.x, "y": o.y, "amount": dmg})
 
 
 static func _update_projectiles(state: GameState, cfg: BattleConfig, dt: float) -> void:

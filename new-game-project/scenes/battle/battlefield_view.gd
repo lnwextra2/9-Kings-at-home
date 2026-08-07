@@ -9,14 +9,23 @@ signal combat_ended
 @export var bob_amp: float = 3.0
 @export var bob_speed: float = 8.0
 
+@export_group("Damage Popup")   # เลขดาเมจเด้งตอนตีศัตรู — จูนหน้าตาได้ที่นี่
+@export var dmg_life: float = 0.6          # อยู่กี่วินาทีก่อนจาง
+@export var dmg_rise: float = 46.0         # ลอยขึ้นกี่ px/วินาที
+@export var dmg_font_size: int = 15
+@export var dmg_color: Color = Color(1.0, 0.92, 0.45)   # เหลืองอ่อน
+@export var dmg_max: int = 80              # เพดานจำนวน popup พร้อมกัน (กัน FPS ตก)
+
 var _accum: float = 0.0
 var _ended: bool = false
 var _mmis: Dictionary = {}   # data_id (StringName) -> MultiMeshInstance2D
+var _popups: Array = []      # {x, y, text, age} — เลขดาเมจกำลังลอย (view ล้วน)
 
 
 func start() -> void:
     _accum = 0.0
     _ended = false
+    _popups.clear()
     for mmi in _mmis.values():
         mmi.multimesh.instance_count = 0
 
@@ -32,11 +41,32 @@ func _process(delta: float) -> void:
             _accum -= Combat.TICK
             if st.result != &"":
                 break
+    _drain_damage(st)
+    _age_popups(delta)
     _sync_multimesh(st)
     queue_redraw()
     if st.result != &"" and not _ended:
         _ended = true
         combat_ended.emit()
+
+
+## ดึงเลขดาเมจที่ core ปล่อยไว้ (สะสมได้หลาย tick/เฟรม) มาเป็น popup แล้วเคลียร์ feed
+func _drain_damage(st: GameState) -> void:
+    for e in st.damage_events:
+        if _popups.size() >= dmg_max:
+            break
+        _popups.append({"x": e.x, "y": e.y, "text": str(int(round(e.amount))), "age": 0.0})
+    st.damage_events.clear()
+
+
+## เดินอายุ popup + ทิ้งตัวหมดอายุ (in-place กัน alloc array ใหม่)
+func _age_popups(delta: float) -> void:
+    var i: int = _popups.size() - 1
+    while i >= 0:
+        _popups[i].age += delta
+        if _popups[i].age >= dmg_life:
+            _popups.remove_at(i)
+        i -= 1
 
 
 func _sync_multimesh(st: GameState) -> void:
@@ -182,3 +212,20 @@ func _draw() -> void:
             var hp_col: Color = Color(0.3, 0.9, 0.35) if u.team == 0 else Color(0.9, 0.3, 0.3)
             draw_rect(Rect2(pos.x - w * 0.5, by, w, 3.0), Color(0, 0, 0, 0.6))
             draw_rect(Rect2(pos.x - w * 0.5, by, w * f, 3.0), hp_col)
+    _draw_popups()
+
+
+## เลขดาเมจลอยขึ้น + จางหาย (เงาดำอ่านง่ายบนพื้นหลังใดก็ได้)
+func _draw_popups() -> void:
+    if _popups.is_empty():
+        return
+    var font: Font = ThemeDB.fallback_font
+    for p in _popups:
+        var f: float = p.age / dmg_life
+        var alpha: float = 1.0 - f * f            # จางช้าตอนต้น เร็วตอนท้าย
+        var off: float = float(p.text.length()) * dmg_font_size * 0.28   # จัดกึ่งกลางแนวนอนคร่าวๆ
+        var base: Vector2 = field_origin + Vector2(p.x - off, p.y - dmg_rise * p.age)
+        draw_string(font, base + Vector2(1, 1), p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, dmg_font_size, Color(0, 0, 0, alpha * 0.7))
+        var col: Color = dmg_color
+        col.a = alpha
+        draw_string(font, base, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, dmg_font_size, col)
