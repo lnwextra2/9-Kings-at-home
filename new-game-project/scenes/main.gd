@@ -1,27 +1,23 @@
 extends Control
 ## ตัวสลับ phase — planning (วาง+ร้าน) ↔ combat (สนามรบ) ↔ reward ↔ gameover
-
-const CARD_PANEL := preload("res://scenes/planning/card_panel.tscn")
-const SHOP_VIEW := preload("res://scenes/planning/shop_view.tscn")
-const REWARD_VIEW := preload("res://scenes/planning/reward_view.tscn")
-const DEBUG_VIEW := preload("res://scenes/planning/debug_view.tscn")
+## UI ทั้งหมดเป็น node ใน main.tscn (จัดใน editor ได้) — สคริปต์แค่ wire signal + refresh
 
 @onready var _top: Label = $TopBar
 @onready var _planning: Control = $Planning
 @onready var _board = $Planning/BoardView
 @onready var _hand = $Planning/HandView
 @onready var _fight: Button = $Planning/FightButton
+@onready var _color_btn: Button = $Planning/ColorButton
+@onready var _panel = $Planning/CardPanel
+@onready var _shop = $Planning/ShopView
 @onready var _battle = $Battlefield
+@onready var _devbtn: Button = $DevButton
+@onready var _reward = $RewardView
+@onready var _debug = $DebugView
 @onready var _overlay: Control = $ResultOverlay
 @onready var _result_label: Label = $ResultOverlay/Panel/VBox/ResultLabel
 @onready var _continue: Button = $ResultOverlay/Panel/VBox/ContinueButton
 
-var _panel: Control
-var _shop
-var _reward
-var _debug
-var _devbtn: Button
-var _color_btn: Button
 var _color_sb: StyleBoxFlat
 var _sel_hand: int = -1
 var _sel_slot: int = -1
@@ -33,55 +29,25 @@ func _ready() -> void:
     _fight.pressed.connect(_on_fight)
     _battle.connect("combat_ended", _on_combat_ended)
     _continue.pressed.connect(_on_gameover_continue)
-    _panel = CARD_PANEL.instantiate()
-    _planning.add_child(_panel)
     _panel.connect("sell_pressed", _on_sell)
     _panel.clear()
-    _shop = SHOP_VIEW.instantiate()
-    _planning.add_child(_shop)
     _shop.connect("buy", _on_buy)
     _shop.connect("reroll_pressed", _on_shop_reroll)
-    _reward = REWARD_VIEW.instantiate()
-    add_child(_reward)
-    _reward.visible = false
     _reward.connect("picked", _on_reward_pick)
     _reward.connect("reroll_pressed", _on_reward_reroll)
-    _debug = DEBUG_VIEW.instantiate()
-    add_child(_debug)
-    _debug.visible = false
+    _reward.visible = false
     _debug.connect("give_card", _on_dbg_give)
     _debug.connect("give_gold", _on_dbg_gold)
     _debug.connect("skip_floor", _on_dbg_skip)
     _debug.connect("spawn_enemies", _on_dbg_spawn)
     _debug.connect("clear_enemies", _on_dbg_clear)
-    _devbtn = Button.new()
-    _devbtn.text = "DEV"
-    _devbtn.focus_mode = Control.FOCUS_NONE
-    _devbtn.anchor_left = 1.0
-    _devbtn.anchor_right = 1.0
-    _devbtn.offset_left = -60.0
-    _devbtn.offset_right = -10.0
-    _devbtn.offset_top = 6.0
-    _devbtn.offset_bottom = 30.0
-    add_child(_devbtn)
+    _debug.visible = false
     _devbtn.pressed.connect(func(): _debug.visible = not _debug.visible)
-    _color_btn = Button.new()
-    _color_btn.focus_mode = Control.FOCUS_NONE
-    # ปุ่มสีเวฟ = ขวาล่าง ใต้ปุ่มเริ่มรบ (ปรับตำแหน่งที่ offset_* พวกนี้)
-    _color_btn.anchor_left = 1.0
-    _color_btn.anchor_top = 1.0
-    _color_btn.anchor_right = 1.0
-    _color_btn.anchor_bottom = 1.0
-    _color_btn.offset_left = -320.0
-    _color_btn.offset_top = -130.0
-    _color_btn.offset_right = -24.0
-    _color_btn.offset_bottom = -90.0
-    _color_sb = StyleBoxFlat.new()
+    _color_btn.pressed.connect(_on_reroll_color)
+    _color_sb = StyleBoxFlat.new()   # พื้นปุ่มสีเวฟ (เปลี่ยนสีตามเวฟใน _update_top)
     _color_sb.set_corner_radius_all(6)
     for _cs in ["normal", "hover", "pressed", "disabled"]:
         _color_btn.add_theme_stylebox_override(_cs, _color_sb)
-    add_child(_color_btn)
-    _color_btn.pressed.connect(_on_reroll_color)
     _refresh_planning()
     _update_phase()
 
@@ -240,8 +206,6 @@ func _update_phase() -> void:
         _reward.visible = false
     if ph != &"gameover":
         _overlay.visible = false
-    if _color_btn:
-        _color_btn.visible = ph == &"planning"
     _update_top()
 
 
@@ -257,8 +221,7 @@ func _reset_selection() -> void:
     _sel_hand = -1
     _sel_slot = -1
     _hand.set_selected(-1)
-    if _panel:
-        _panel.clear()
+    _panel.clear()
 
 
 func _update_top() -> void:
@@ -271,7 +234,6 @@ func _update_top() -> void:
     elif st.phase == &"gameover":
         ph = "จบเกม"
     _top.text = "ชั้น %d  ·  gold %d  ·  HP %d  ·  [%s]" % [st.floor_num, st.gold, st.base_hp, ph]
-    if _color_btn:
-        _color_btn.text = "ศัตรูเวฟนี้: สี%s   ·   รีโรล %dg" % [_color_name(st.wave_color), st.enemy_reroll_cost]
-        _color_btn.disabled = st.gold < st.enemy_reroll_cost
-        _color_sb.bg_color = _wave_btn_color(st.wave_color)
+    _color_btn.text = "ศัตรูเวฟนี้: สี%s   ·   รีโรล %dg" % [_color_name(st.wave_color), st.enemy_reroll_cost]
+    _color_btn.disabled = st.gold < st.enemy_reroll_cost
+    _color_sb.bg_color = _wave_btn_color(st.wave_color)
