@@ -40,6 +40,8 @@ layout_mode = 1
 
 [node name="ShopView" parent="Planning" unique_id=1721216757 instance=ExtResource("6")]
 anchors_preset = 5
+offset_top = 0.0
+offset_bottom = 134.0
 
 [node name="FightButton" type="Button" parent="Planning" unique_id=1488184177]
 layout_mode = 1
@@ -84,10 +86,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -60.0
-offset_top = 6.0
-offset_right = -10.0
-offset_bottom = 30.0
+offset_left = -62.0
+offset_top = 8.0
+offset_right = -12.0
+offset_bottom = 39.0
 grow_horizontal = 0
 text = "DEV"
 
@@ -98,6 +100,11 @@ layout_mode = 1
 [node name="DebugView" parent="." unique_id=699110700 instance=ExtResource("8")]
 visible = false
 anchors_preset = 11
+offset_left = -80.0
+offset_top = 40.0
+offset_right = -80.0
+offset_bottom = 40.0
+grow_vertical = 2
 
 [node name="ResultOverlay" type="Control" parent="." unique_id=232247375]
 visible = false

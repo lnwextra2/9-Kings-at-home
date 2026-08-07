@@ -20,26 +20,28 @@ static func resolve(state: GameState) -> void:
 
 static func _fire(state: GameState, idx: int, e: EffectData, burst: Array) -> void:
     var source: Dictionary = state.board[idx]
-    var mult: int = int(source.level) if e.scales_with_level else 1
-    match e.action:
-        EffectData.Action.GRANT_GOLD:
-            var g: int = int(e.value * mult)           # ตลาด: +value × level
-            state.gold += g
-            state.gold_earned += g
-            state.buff_events.append({"slot": idx, "kind": &"gold", "amount": g, "burst": burst[0]})
-            burst[0] += 1
-        EffectData.Action.MODIFY_STAT:
-            var slots: Array = _target_slots(state, idx, e)
-            if slots.is_empty():
-                return                                 # ไม่มีเป้า → ไม่กินลำดับ
-            for s in slots:
-                _apply_stat(state.board[s], e, mult)   # ฟาร์ม: +count ให้เพื่อนบ้าน ฯลฯ
-                var shown: float = e.value if e.is_percent else e.value * mult
-                state.buff_events.append({
-                    "slot": s, "kind": &"stat", "stat": e.stat_name,
-                    "amount": shown, "is_percent": e.is_percent, "burst": burst[0],
-                })
-            burst[0] += 1                              # ทุกเป้าของ effect นี้ = burst เดียว (เด้งพร้อมกัน)
+    # สิ่งก่อสร้างสายบัฟ = "ทำงานเดิมซ้ำ level ครั้ง" (ไม่ใช่คูณค่าทีเดียว)
+    # → ฟาร์ม Lv3 = +1 count สุ่มเพื่อนบ้าน 3 ครั้ง (กระจายโดนหลายตัวได้), ตลาด Lv3 = +3g สามครั้ง
+    var procs: int = int(source.level) if e.scales_with_level else 1
+    for _p in procs:
+        match e.action:
+            EffectData.Action.GRANT_GOLD:
+                var g: int = int(e.value)              # ต่อครั้ง = value (level = จำนวนครั้ง)
+                state.gold += g
+                state.gold_earned += g
+                state.buff_events.append({"slot": idx, "kind": &"gold", "amount": g, "burst": burst[0]})
+                burst[0] += 1
+            EffectData.Action.MODIFY_STAT:
+                var slots: Array = _target_slots(state, idx, e)   # re-roll ทุกครั้ง → สุ่มกระจาย
+                if slots.is_empty():
+                    continue                           # ครั้งนี้ไม่มีเป้า → ข้าม (ไม่กินลำดับ)
+                for s in slots:
+                    _apply_stat(state.board[s], e)     # ต่อครั้ง = value (ไม่คูณ level)
+                    state.buff_events.append({
+                        "slot": s, "kind": &"stat", "stat": e.stat_name,
+                        "amount": e.value, "is_percent": e.is_percent, "burst": burst[0],
+                    })
+                burst[0] += 1                          # เป้าของครั้งนี้ = burst เดียว (หมู่=พร้อมกัน), ครั้งถัดไป=burst ใหม่ (รัวๆ)
 
 
 ## target → รายการ "slot index" ที่โดนผล (คืน index เพื่อให้ view เด้งเลขถูกช่อง)
@@ -71,8 +73,8 @@ static func _neighbor_slots(state: GameState, idx: int, e: EffectData) -> Array:
     return out
 
 
-static func _apply_stat(card: Dictionary, e: EffectData, mult: int) -> void:
+static func _apply_stat(card: Dictionary, e: EffectData) -> void:
     if e.is_percent:
-        Stats.apply_pct(card, e.stat_name, e.value)    # % ปกติไม่คูณ level (ทบต้นทุกเทิร์นเอง)
+        Stats.apply_pct(card, e.stat_name, e.value)    # ทบต้น (ซ้ำหลายครั้ง = compound)
     else:
-        Stats.apply_flat(card, e.stat_name, e.value * mult)
+        Stats.apply_flat(card, e.stat_name, e.value)   # +value ต่อครั้ง
