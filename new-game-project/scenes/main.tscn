@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://b3e547tcs46b0" path="res://scenes/planning/shop_view.tscn" id="6"]
 [ext_resource type="PackedScene" uid="uid://cvcabes3ea6ad" path="res://scenes/planning/reward_view.tscn" id="7"]
 [ext_resource type="PackedScene" uid="uid://j64e1657e70n" path="res://scenes/planning/debug_view.tscn" id="8"]
+[ext_resource type="Script" path="res://scenes/planning/sell_zone.gd" id="9"]
 
 [node name="Main" type="Control" unique_id=1355908067]
 layout_mode = 3
@@ -72,6 +73,18 @@ offset_bottom = -90.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "ศัตรูเวฟ"
+
+[node name="SellZone" type="Panel" parent="Planning"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -128.0
+offset_right = 150.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("9")
 
 [node name="TopBar" type="Label" parent="." unique_id=1510625430]
 layout_mode = 1

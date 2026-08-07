@@ -1,6 +1,10 @@
 extends Control
 ## กระดานวางการ์ด — วาดจาก Game.state, คลิกช่อง → emit slot_clicked (view ไม่แก้ state เอง)
+## ช่องรับการ์ดที่ลากมาวางได้ด้วย (drag-drop) → emit card_dropped
 signal slot_clicked(idx: int)
+signal card_dropped(slot: int, hand_index: int)
+
+const BOARD_CELL := preload("res://scenes/planning/board_cell.gd")
 
 @export var cell_size: int = 72
 @export var cell_gap: int = 8
@@ -31,6 +35,9 @@ func refresh() -> void:
 
 func _make_cell(st: GameState, idx: int) -> Button:
     var cell := Button.new()
+    cell.set_script(BOARD_CELL)   # รับ drop การ์ดได้
+    cell.set(&"can_drop_fn", _cell_can_drop.bind(idx))
+    cell.set(&"drop_fn", _cell_drop.bind(idx))
     cell.custom_minimum_size = Vector2(cell_size, cell_size)
     cell.focus_mode = Control.FOCUS_NONE
     cell.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -91,6 +98,15 @@ func _stars(level: int) -> String:
 
 func _emit_slot(idx: int) -> void:
     slot_clicked.emit(idx)
+
+
+## drop การ์ดที่ลากมา: วางได้ทุกช่องที่ไม่ล็อก (empty=วาง, มีการ์ด=merge/ใช้ tome) — main ตัดสิน
+func _cell_can_drop(idx: int) -> bool:
+    return not Game.state.is_locked(idx)
+
+
+func _cell_drop(hand_index: int, idx: int) -> void:
+    card_dropped.emit(idx, hand_index)
 
 
 ## เลขบัฟเด้งที่ช่อง idx (Label ลูกของ cell → ลอยขึ้น+จาง แล้ว free เอง)

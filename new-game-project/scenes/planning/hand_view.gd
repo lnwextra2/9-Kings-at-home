@@ -5,6 +5,8 @@ signal card_selected(index: int)
 @export var card_w: int = 92
 @export var card_h: int = 100
 
+const HAND_CARD := preload("res://scenes/planning/hand_card.gd")
+
 @onready var _row: HBoxContainer = $Center/Row
 
 
@@ -29,6 +31,9 @@ func set_selected(sel: int) -> void:
 func _make_card(i: int, data_id: StringName) -> Button:
     var d: CardData = Content.card(data_id)
     var b := Button.new()
+    b.set_script(HAND_CARD)   # ลากได้ (drag source)
+    b.set(&"hand_index", i)
+    b.set(&"card_data_id", data_id)
     b.custom_minimum_size = Vector2(card_w, card_h)
     b.toggle_mode = true
     b.focus_mode = Control.FOCUS_NONE

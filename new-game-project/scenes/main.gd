@@ -10,6 +10,7 @@ extends Control
 @onready var _color_btn: Button = $Planning/ColorButton
 @onready var _panel = $Planning/CardPanel
 @onready var _shop = $Planning/ShopView
+@onready var _sell_zone = $Planning/SellZone
 @onready var _battle = $Battlefield
 @onready var _devbtn: Button = $DevButton
 @onready var _reward = $RewardView
@@ -31,6 +32,8 @@ var _resolving: bool = false   # กำลังเล่นอนิเมช�
 func _ready() -> void:
     _hand.connect("card_selected", _on_card_selected)
     _board.connect("slot_clicked", _on_slot_clicked)
+    _board.connect("card_dropped", _on_card_dropped)
+    _sell_zone.connect("sell_dropped", _on_sell_dropped)
     _fight.pressed.connect(_on_fight)
     _battle.connect("combat_ended", _on_combat_ended)
     _continue.pressed.connect(_on_gameover_continue)
@@ -179,6 +182,32 @@ func _stat_label(s: StringName) -> String:
         &"count": return "count"
         &"move_speed": return "spd"
         _: return str(s)
+
+
+## ลากการ์ดจากมือมาวางบนช่องกระดาน (drag-drop)
+func _on_card_dropped(slot: int, hand_index: int) -> void:
+    if _resolving or hand_index < 0 or hand_index >= Game.state.hand.size():
+        return
+    var d: CardData = Content.card(Game.state.hand[hand_index])
+    var act: StringName = &"use_card" if (d.kind == CardData.Kind.BUFF or d.kind == CardData.Kind.TOME) else &"place_card"
+    if GameSim.step(Game.state, {"type": act, "hand_index": hand_index, "slot": slot}):
+        _reset_selection()
+        _refresh_planning()
+        _flush_buff_pops()
+        var occ = Game.state.board[slot]
+        if occ is Dictionary:
+            _panel.show_current(occ)
+        else:
+            _panel.clear()
+
+
+## ลากการ์ดจากมือมาปล่อยที่บ่อขาย
+func _on_sell_dropped(hand_index: int) -> void:
+    if _resolving or hand_index < 0 or hand_index >= Game.state.hand.size():
+        return
+    if GameSim.step(Game.state, {"type": &"sell_card", "hand_index": hand_index}):
+        _reset_selection()
+        _refresh_planning()
 
 
 func _on_sell() -> void:
