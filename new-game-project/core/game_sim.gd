@@ -144,9 +144,18 @@ static func _begin_combat(state: GameState) -> bool:
     state.damage_events = []
     state.buff_events = []
     state.combat_time = 0.0
+    state.form_t = 0.0
+    state.forming = _any_marching(state)   # มีทหารต้องเดินไหม (ไม่มีก็สู้เลย)
     state.result = &""
     state.phase = &"combat"
     return true
+
+
+static func _any_marching(state: GameState) -> bool:
+    for u in state.units:
+        if u.marching:
+            return true
+    return false
 
 
 static func _find_base_unit(state: GameState) -> int:

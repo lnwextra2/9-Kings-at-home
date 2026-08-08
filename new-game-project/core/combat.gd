@@ -10,6 +10,9 @@ static func tick(state: GameState, dt: float) -> void:
     if state.phase != &"combat" or state.result != &"":
         return
     var cfg: BattleConfig = state.battle_cfg
+    if state.forming:   # ทหารเดินจากช่องมาตั้งแถวก่อน (freeze การสู้ ทุกคนถึงพร้อมกัน)
+        _tick_forming(state, cfg, dt)
+        return
     var units: Array = state.units
     state.combat_time += dt
     var touched_base := false
@@ -62,6 +65,24 @@ static func tick(state: GameState, dt: float) -> void:
     _update_bombs(state)
     _cleanup_deaths(state)
     _check_end(state, touched_base)
+
+
+## ช่วงตั้งแถว: interpolate ทุกทหาร march_from → march_to ด้วย t เดียวกัน (ถึงพร้อมกันใน form_duration)
+static func _tick_forming(state: GameState, cfg: BattleConfig, dt: float) -> void:
+    state.form_t += dt
+    var t: float = clampf(state.form_t / maxf(cfg.form_duration, 0.001), 0.0, 1.0)
+    var te: float = t * t * (3.0 - 2.0 * t)   # smoothstep (ออกตัว/เข้าที่นุ่ม)
+    for u in state.units:
+        if u.marching:
+            u.x = lerpf(u.march_fx, u.march_tx, te)
+            u.y = lerpf(u.march_fy, u.march_ty, te)
+    if t >= 1.0:
+        for u in state.units:
+            if u.marching:
+                u.x = u.march_tx
+                u.y = u.march_ty
+                u.marching = false
+        state.forming = false
 
 
 static func _valid_target(units: Array, tid: int, team: int) -> bool:

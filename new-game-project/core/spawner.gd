@@ -6,26 +6,28 @@ extends RefCounted
 ## - ฐาน/ป้อม: ที่ตำแหน่ง map จากช่องกระดาน (ป้อมยิงทั้งสนาม — ดู Unit.from_instance)
 
 
+## ทุกการ์ดบนกระดานโผล่ในสนามที่ "ตำแหน่งช่อง"; ทหารสปอว์นที่ช่องแล้วเดินไปตั้งแถว;
+## ซัพพอร์ต (ฟาร์ม/ตลาด ฯลฯ) โผล่แบบ inert (ตีไม่โดน ไม่ทำอะไร); กำแพงรวม HP เป็นแนวกั้น
 static func spawn_player(state: GameState, cfg: BattleConfig) -> Array:
     var out: Array = []
-    var soldiers: Array = []   # card instance ต่อ 1 ยูนิต
+    var soldiers: Array = []   # {inst, bx, by} — ทหาร 1 ยูนิต + ตำแหน่งช่องที่ออก
     var wall_hp: float = 0.0
     for idx in state.board.size():
         var c = state.board[idx]
         if not (c is Dictionary):
             continue
         var d: CardData = Content.card(c.data_id)
-        if not d.goes_to_field():
-            continue
+        var col: int = idx % state.cols
+        var row: int = idx / state.cols
+        var bx: float = cfg.our_x0 + col * cfg.our_col_dx
+        var by: float = cfg.our_y0 + row * cfg.our_row_dy
         if d.kind == CardData.Kind.SOLDIER:
             for n in int(c.cur_count) + Blessing.count_add(state):   # พร +count ทุกเวฟ
-                soldiers.append(c)
+                soldiers.append({"inst": c, "bx": bx, "by": by})
         elif d.kind == CardData.Kind.BUILDING and d.max_hp > 0.0:
             wall_hp += float(c.cur_hp)   # กำแพง — รวม HP ทุกใบ
         else:
-            var col: int = idx % state.cols
-            var row: int = idx / state.cols
-            out.append(Unit.from_instance(0, c, cfg.our_x0 + col * cfg.our_col_dx, cfg.our_y0 + row * cfg.our_row_dy))
+            out.append(Unit.from_instance(0, c, bx, by))   # ฐาน/ป้อม/ซัพพอร์ต ที่ช่อง
     _place_formation(out, soldiers, cfg)
     if wall_hp > 0.0:
         out.append(Unit.make_wall(wall_hp, cfg.wall_x, cfg.height * 0.5))
@@ -51,16 +53,16 @@ static func _apply_blessings(state: GameState, out: Array) -> void:
 static func _place_formation(out: Array, soldiers: Array, cfg: BattleConfig) -> void:
     var melee: Array = []
     var ranged: Array = []
-    for c in soldiers:
-        if Content.card(c.data_id).attack_range > cfg.ranged_min_range:
-            ranged.append(c)
+    for e in soldiers:
+        if Content.card(e.inst.data_id).attack_range > cfg.ranged_min_range:
+            ranged.append(e)
         else:
-            melee.append(c)
+            melee.append(e)
     var melee_cols: int = _fill_group(out, melee, cfg, cfg.front_x)          # ตีใกล้ = แถวหน้า
     _fill_group(out, ranged, cfg, cfg.front_x - melee_cols * cfg.col_dx)     # ยิงไกล = แถวหลัง
 
 
-## เติมทหาร 1 กลุ่มเป็นคอลัมน์ (แนวลึกไปทางฐาน) — กระจายเต็มความสูงต่อคอลัมน์ (จัดกึ่งกลาง)
+## เติมทหาร 1 กลุ่ม: สปอว์นที่ช่อง (e.bx,e.by) + ตั้ง march target = จุดยืนในแถว
 ## คืนจำนวนคอลัมน์ที่ใช้
 static func _fill_group(out: Array, group: Array, cfg: BattleConfig, front: float) -> int:
     var total: int = group.size()
@@ -76,7 +78,14 @@ static func _fill_group(out: Array, group: Array, cfg: BattleConfig, front: floa
         var col: int = i % cols
         var row: int = i / cols
         var count_in_col: int = base_n + (1 if col < rem else 0)   # จำนวนตัวในคอลัมน์นี้
-        var x: float = front - col * cfg.col_dx
-        var y: float = margin + (row + 0.5) * (zone_h / float(count_in_col))   # กระจายเต็มความสูง
-        out.append(Unit.from_instance(0, group[i], x, y))
+        var tx: float = front - col * cfg.col_dx
+        var ty: float = margin + (row + 0.5) * (zone_h / float(count_in_col))   # กระจายเต็มความสูง
+        var e: Dictionary = group[i]
+        var u: Dictionary = Unit.from_instance(0, e.inst, e.bx, e.by)   # ออกจากช่อง
+        u.marching = true
+        u.march_fx = e.bx
+        u.march_fy = e.by
+        u.march_tx = tx
+        u.march_ty = ty
+        out.append(u)
     return cols

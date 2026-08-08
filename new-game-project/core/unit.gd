@@ -71,6 +71,9 @@ static func _blank(team: int, d: CardData, x: float, y: float) -> Dictionary:
         "bomb_radius": d.bomb_radius,
         "bomb_tx": -1.0,              # จุดวางปัจจุบัน (-1 = ยังไม่เลือก)
         "bomb_ty": 0.0,
+        "marching": false,           # เดินจากช่องกระดานไปตั้งแถว (ก่อนสู้)
+        "march_fx": x, "march_fy": y,   # จุดออก (ตำแหน่งช่อง)
+        "march_tx": x, "march_ty": y,   # จุดยืนในแถว
         "attack_cd": 1.0,
         "attack_range": d.attack_range,
         "move_speed": d.move_speed,

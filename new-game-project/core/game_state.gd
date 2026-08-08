@@ -40,6 +40,8 @@ var bombs: Array = []                  # ระเบิด Trapper {x,y,damage,
 var damage_events: Array = []          # feed เลขดาเมจเด้ง (transient): {x,y,amount} — view drain ทิ้งทุกเฟรม
 var buff_events: Array = []            # feed เลขบัฟบนกระดาน (transient): {slot,kind,...} — view drain
 var combat_time: float = 0.0
+var forming: bool = false              # ช่วงทหารเดินจากช่องมาตั้งแถว (freeze การสู้)
+var form_t: float = 0.0                # เวลาสะสมของ forming (0..form_duration)
 var result: StringName = &""           # "" / "win" / "lose"
 var base_unit: int = -1                # index ใน units ของฐาน (จุดที่ศัตรูมุ่งเข้าเมื่อทหารเราหมด)
 var battle_cfg: BattleConfig           # config สนามรบ (set โดย Game; Resource ใช้ใน core ได้)

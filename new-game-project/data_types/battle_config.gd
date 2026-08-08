@@ -25,6 +25,7 @@ extends Resource
 @export var max_cols: int = 6            # จำนวนแถวสูงสุด (กันสปอว์นไกลไปฝั่งศัตรู; เกินแล้วบีบระยะ)
 @export var wall_x: float = 380.0        # ตำแหน่งกำแพง (หลังทหาร)
 @export var bomb_scatter: float = 55.0   # Trapper วางระเบิดกระจายรอบตัวรัศมีนี้
+@export var form_duration: float = 2.0   # ทหารเดินจากช่องมาตั้งแถวใช้เวลา (วิ) ถึงพร้อมกัน ก่อนเริ่มสู้
 
 @export_group("Combat")
 @export var base_touch_radius: float = 28.0   # ศัตรูเข้าใกล้ฐานเท่านี้ = แตะ (จบเวฟ)
