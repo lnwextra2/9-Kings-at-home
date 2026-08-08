@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="BattleConfig" load_steps=2 format=3 uid="uid://dak0battle0v"]
+[gd_resource type="Resource" script_class="BattleConfig" format=3 uid="uid://dak0battle0v"]
 
-[ext_resource type="Script" path="res://data_types/battle_config.gd" id="1"]
+[ext_resource type="Script" uid="uid://dsb6rmoieeski" path="res://data_types/battle_config.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
@@ -10,20 +10,9 @@ our_x0 = 40.0
 our_col_dx = 42.0
 our_y0 = 140.0
 our_row_dy = 90.0
-soldier_spread = 18.0
 enemy_x = 900.0
-enemy_y_margin = 40.0
 enemy_spread = 28.0
 front_x = 340.0
 col_dx = 30.0
-row_dy = 24.0
-max_cols = 6
 wall_x = 160.0
-base_touch_radius = 28.0
-retarget_interval = 0.2
-projectile_speed = 600.0
-projectile_hit_radius = 10.0
-projectile_pierce_radius = 12.0
-ranged_min_range = 60.0
-hash_cell = 64.0
-crit_mult = 2.0
+projectile_speed = 1000.0

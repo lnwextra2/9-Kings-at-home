@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://j64e1657e70n" path="res://scenes/planning/debug_view.tscn" id="8"]
 [ext_resource type="Script" uid="uid://ccerf52rmia2d" path="res://scenes/planning/sell_zone.gd" id="9"]
 [ext_resource type="Script" uid="uid://bumdk6pa5p6dn" path="res://scenes/planning/station_bar.gd" id="10"]
-[ext_resource type="Script" path="res://scenes/planning/blessing_view.gd" id="11"]
+[ext_resource type="Script" uid="uid://bvojbg6kbg48i" path="res://scenes/planning/blessing_view.gd" id="11"]
 
 [node name="Main" type="Control" unique_id=1355908067]
 layout_mode = 3
@@ -92,20 +92,17 @@ offset_bottom = 96.0
 grow_horizontal = 2
 script = ExtResource("10")
 
-[node name="ShopView" parent="." instance=ExtResource("6")]
+[node name="ShopView" parent="." unique_id=1533034842 instance=ExtResource("6")]
 visible = false
 anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
 offset_left = -300.0
 offset_top = 150.0
 offset_right = 300.0
 offset_bottom = 300.0
-grow_horizontal = 2
 
-[node name="ShopContinue" type="Button" parent="."]
+[node name="ShopContinue" type="Button" parent="." unique_id=1402271576]
 visible = false
-anchors_preset = 7
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -118,9 +115,9 @@ grow_horizontal = 2
 grow_vertical = 0
 text = "ไปต่อ ▶"
 
-[node name="BlessingView" type="Control" parent="."]
+[node name="BlessingView" type="Control" parent="." unique_id=1564173827]
 visible = false
-layout_mode = 3
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -128,7 +125,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("11")
 
-[node name="ExpandPrompt" type="Label" parent="."]
+[node name="ExpandPrompt" type="Label" parent="." unique_id=312829333]
 visible = false
 layout_mode = 1
 anchors_preset = 5
@@ -144,10 +141,10 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="EventToggle" type="Button" parent="."]
+[node name="EventToggle" type="Button" parent="." unique_id=1787873898]
 visible = false
 layout_mode = 1
-anchors_preset = 1
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -80.0
