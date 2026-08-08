@@ -25,6 +25,10 @@ static func tick(state: GameState, dt: float) -> void:
             u.retarget_timer -= dt
         u.attacking = false
 
+        if u.bombs_left > 0:   # Trapper: วิ่งไปวางระเบิดทีละลูกก่อน แล้วค่อยสู้
+            _trapper_lay(state, cfg, u, dt)
+            continue
+
         # หาเป้าใหม่เมื่อ: ครบรอบ retarget / เป้าเดิมตาย — ไม่ re-scan ทุก tick ตอนไม่มีเป้า
         if u.retarget_timer <= 0.0 or (u.target_id != -1 and not _valid_target(units, u.target_id, u.team)):
             u.target_id = hash.nearest_enemy(units, u)
@@ -274,6 +278,22 @@ static func _damage_area(state: GameState, team: int, x: float, y: float, dmg: f
                 o.hp -= dmg
                 if team == 0:
                     state.damage_events.append({"x": o.x, "y": o.y, "amount": dmg})
+
+
+## Trapper วางระเบิดทีละลูก: วิ่งกลับไปจุดหน้ากำแพง (สุ่ม) → ถึงแล้ววาง 1 ลูก → เลือกจุดใหม่
+static func _trapper_lay(state: GameState, cfg: BattleConfig, u: Dictionary, dt: float) -> void:
+    if u.bomb_tx < 0.0:
+        u.bomb_tx = cfg.wall_x + state.rng.randf() * cfg.bomb_scatter
+        u.bomb_ty = u.y + (state.rng.randf() - 0.5) * 2.0 * cfg.bomb_scatter
+    var dx: float = u.bomb_tx - u.x
+    var dy: float = u.bomb_ty - u.y
+    var dist: float = sqrt(dx * dx + dy * dy)
+    if dist <= 6.0:
+        state.bombs.append({"x": u.x, "y": u.y, "damage": u.attack, "radius": u.bomb_radius, "alive": true})
+        u.bombs_left -= 1
+        u.bomb_tx = -1.0   # เลือกจุดใหม่รอบหน้า
+    else:
+        _move_toward(u, dx, dy, dist, dt)
 
 
 ## ระเบิด Trapper: ศัตรูเข้าใกล้ (radius/2) → ระเบิด AoE (radius) ใส่ศัตรู, dmg = ที่ bake ไว้
