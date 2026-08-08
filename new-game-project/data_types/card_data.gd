@@ -35,6 +35,8 @@ enum Kind { SOLDIER, BASE, BUILDING, TURRET, BUFF, TOME }
 @export var hooks_script: Script          # tier 2 script (การ์ดที่พิเศษจริงๆ)
 @export var multishot: bool = false       # true = ยิง cur_count นัด/ครั้ง สุ่มเป้า (ป้อมยิงหลายเป้า)
 @export var pierce: bool = false          # true = กระสุนวิ่งตรงจนสุดแมพ ทะลุโดนทุกตัวในเส้นทาง (บาริสต้า)
+@export var bomb_count: int = 0           # >0 = วางระเบิด N ลูกตอนสปอว์น (Trapper)
+@export var bomb_radius: float = 0.0      # รัศมีระเบิด (detection = ครึ่งนึง), aoe dmg = attack
 
 @export_group("Economy")
 @export var cost: int = 4                 # ราคาในร้าน

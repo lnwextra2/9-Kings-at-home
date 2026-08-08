@@ -36,6 +36,7 @@ var rng: Rng                           # สุ่มทั้งหมดผ่
 # combat (ใช้เฉพาะ phase = combat, transient — ไม่ต้อง serialize กลางสนาม)
 var units: Array = []                  # unit dict (M2); SoA เป็นงาน M3
 var projectiles: Array = []
+var bombs: Array = []                  # ระเบิด Trapper {x,y,damage,radius,alive} — สะสมข้ามเวฟ (ไม่ clear ตอนเริ่มรบ)
 var damage_events: Array = []          # feed เลขดาเมจเด้ง (transient): {x,y,amount} — view drain ทิ้งทุกเฟรม
 var buff_events: Array = []            # feed เลขบัฟบนกระดาน (transient): {slot,kind,...} — view drain
 var combat_time: float = 0.0

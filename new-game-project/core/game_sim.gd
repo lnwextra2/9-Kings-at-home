@@ -138,6 +138,7 @@ static func _resolve_turn(state: GameState) -> bool:
 static func _begin_combat(state: GameState) -> bool:
     var cfg: BattleConfig = state.battle_cfg
     state.units = Spawner.spawn_player(state, cfg)
+    _place_bombs(state, cfg)                       # Trapper วางระเบิด (สะสมข้ามเวฟ — ไม่เคลียร์ bombs)
     state.units.append_array(WaveGen.make_wave(state, cfg))
     state.base_unit = _find_base_unit(state)
     state.projectiles = []
@@ -147,6 +148,17 @@ static func _begin_combat(state: GameState) -> bool:
     state.result = &""
     state.phase = &"combat"
     return true
+
+
+## Trapper: ยูนิต bomb_count>0 วางระเบิดกระจายไปข้างหน้า (สุ่มผ่าน state.rng), dmg = attack ตอนวาง
+static func _place_bombs(state: GameState, cfg: BattleConfig) -> void:
+    for u in state.units:
+        if u.bomb_count <= 0 or u.attack <= 0.0:
+            continue
+        for _b in u.bomb_count:
+            var bx: float = u.x + state.rng.randf() * cfg.bomb_scatter   # ไปทางหน้า (ฝั่งศัตรู)
+            var by: float = u.y + (state.rng.randf() - 0.5) * 2.0 * cfg.bomb_scatter
+            state.bombs.append({"x": bx, "y": by, "damage": u.attack, "radius": u.bomb_radius, "alive": true})
 
 
 static func _find_base_unit(state: GameState) -> int:

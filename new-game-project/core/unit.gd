@@ -67,6 +67,8 @@ static func _blank(team: int, d: CardData, x: float, y: float) -> Dictionary:
         "block": 0,               # จำนวนครั้งที่กันดาเมจได้ (เกราะกำบัง)
         "shots": 1,               # จำนวนนัดต่อการโจมตี (>1 = multishot สุ่มเป้า)
         "pierce": d.pierce,       # กระสุนทะลุ (บาริสต้า)
+        "bomb_count": d.bomb_count,   # วางระเบิดกี่ลูกตอนสปอว์น (Trapper)
+        "bomb_radius": d.bomb_radius,
         "attack_cd": 1.0,
         "attack_range": d.attack_range,
         "move_speed": d.move_speed,

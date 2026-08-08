@@ -248,6 +248,13 @@ func _draw() -> void:
     for p in st.projectiles:
         if p.alive:
             draw_circle(field_origin + Vector2(p.x, p.y), 2.5, Color(1, 1, 0.55))
+    # ระเบิด Trapper: วงตรวจจับจางๆ + ตัวระเบิด
+    for bm in st.bombs:
+        if bm.alive:
+            var bp: Vector2 = field_origin + Vector2(bm.x, bm.y)
+            draw_circle(bp, bm.radius * 0.5, Color(0.9, 0.3, 0.2, 0.10))
+            draw_circle(bp, 4.5, Color(0.14, 0.11, 0.11))
+            draw_arc(bp, 4.5, 0.0, TAU, 12, Color(0.95, 0.45, 0.2), 1.5)
     # HP bar (สีตามฝั่ง: เรา=เขียว ศัตรู=แดง) + fallback สี่เหลี่ยมถ้าไม่มี sprite
     for u in st.units:
         if not u.alive:

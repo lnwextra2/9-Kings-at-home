@@ -55,6 +55,7 @@ static func tick(state: GameState, dt: float) -> void:
                 touched_base = true
 
     _update_projectiles(state, cfg, dt)
+    _update_bombs(state)
     _cleanup_deaths(state)
     _check_end(state, touched_base)
 
@@ -273,6 +274,31 @@ static func _damage_area(state: GameState, team: int, x: float, y: float, dmg: f
                 o.hp -= dmg
                 if team == 0:
                     state.damage_events.append({"x": o.x, "y": o.y, "amount": dmg})
+
+
+## ระเบิด Trapper: ศัตรูเข้าใกล้ (radius/2) → ระเบิด AoE (radius) ใส่ศัตรู, dmg = ที่ bake ไว้
+static func _update_bombs(state: GameState) -> void:
+    if state.bombs.is_empty():
+        return
+    var any_dead := false
+    for b in state.bombs:
+        if not b.alive:
+            continue
+        var det2: float = (b.radius * 0.5) * (b.radius * 0.5)
+        var trigger := false
+        for o in state.units:
+            if o.alive and o.team == 1 and o.targetable:
+                var dx: float = o.x - b.x
+                var dy: float = o.y - b.y
+                if dx * dx + dy * dy <= det2:
+                    trigger = true
+                    break
+        if trigger:
+            _damage_area(state, 0, b.x, b.y, b.damage, b.radius)   # ระเบิดใส่ศัตรู (team 1)
+            b.alive = false
+            any_dead = true
+    if any_dead:
+        state.bombs = state.bombs.filter(func(bb): return bb.alive)
 
 
 ## ระยะกำลังสองจากจุด (px,py) ถึงช่วงเส้น (a→b)
