@@ -8,7 +8,7 @@
 
 
 ## Legend — ความหมายของ field & flag
-- **count**: จำนวนทหารที่สปอว์นตอน Lv3 (Lv1 = count/9, Lv2 = count/3 โดยประมาณ ตามระบบ ×3)
+- **count**: จำนวนทหารที่สปอว์น = **`base_count` ตรงๆ** → `cur_count = base_count × level` (Lv1 = base_count, Lv2 = 2×, Lv3 = 3×)
 - **hp / dmg**: เลือด / ดาเมจต่อครั้ง (ค่า base Lv1)
 - **range**: ระยะโจมตี (px) — melee ~26, ranged 200-400
 - **atkCd**: คูลดาวน์โจมตี (วินาที/ครั้ง) ยิ่งน้อยยิ่งตีเร็ว

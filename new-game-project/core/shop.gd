@@ -6,9 +6,13 @@ const SLOTS := 4
 const REROLL_COST := 2
 
 
-## pool ที่ขาย (สีฟ้า placeholder ชั่วคราว; M4 อาจอิงสี/floor)
+## pool ที่ขาย = การ์ดผู้เล่นทุกสี (เว้นการ์ดศัตรู debug)
 static func pool() -> Array:
-    return Content.by_color(&"blue")
+    var out: Array = []
+    for d in Content.all():
+        if d.id != WaveGen.ENEMY_ID:
+            out.append(d)
+    return out
 
 
 static func roll(state: GameState) -> void:

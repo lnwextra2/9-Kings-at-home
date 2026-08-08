@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dak0market0v"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://goldmarket0v1"]
 
 [ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
 [ext_resource type="Script" path="res://data_types/effect_data.gd" id="2"]
@@ -19,12 +19,13 @@ script = ExtResource("1")
 id = &"market"
 display_name = "ตลาด"
 sprite = ExtResource("3")
-color = &"blue"
+color = &"gold"
 kind = 2
-description = "สิ่งก่อสร้างซัพพอร์ต — จบเทิร์นให้ทอง 3×level"
+description = "สิ่งก่อสร้างซัพพอร์ต — จบเทิร์นให้ทอง +3 (ทำ Lv ครั้ง = 3×Lv)"
 max_hp = 0.0
 attack = 0.0
 attack_range = 0.0
 move_speed = 0.0
 base_count = 1
 effects = Array[EffectData]([SubResource("eff_gold")])
+cost = 4

@@ -67,7 +67,7 @@ static func new_run(cfg: RunConfig) -> GameState:
 			s.board[r * s.cols + c] = null if unlocked else &"locked"
 
 	# มือเริ่มต้น: ฐาน (บังคับวาง wave 0) + สุ่มทหาร start_cards ใบ
-	s.hand = [&"base_castle"]
+	s.hand = [&"mint_base"]
 	var pool: Array = []
 	for d in Content.all():
 		if d.kind == CardData.Kind.SOLDIER and d.id != WaveGen.ENEMY_ID:   # เว้นการ์ดศัตรู debug
