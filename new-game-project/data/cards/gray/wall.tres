@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://graywall0v1"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://graywall0v1"]
 
 [ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/wall.svg" id="2"]
