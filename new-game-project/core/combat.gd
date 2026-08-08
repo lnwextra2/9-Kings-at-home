@@ -114,10 +114,19 @@ static func _fire_one(state: GameState, cfg: BattleConfig, u: Dictionary, tid: i
     if u.crit > 0.0 and state.rng.randf() < u.crit:   # คริ = ดาเมจ × crit_mult (สุ่มผ่าน state.rng)
         dmg *= cfg.crit_mult
     if u.attack_range > cfg.ranged_min_range:
+        # ballistic: เล็งพิกัดเป้า ณ ตอนยิง → วิ่งเส้นตรงตามทิศนั้น (ไม่ตามเป้า)
+        var dx: float = t.x - u.x
+        var dy: float = t.y - u.y
+        var dist: float = maxf(sqrt(dx * dx + dy * dy), 0.001)
+        var spd: float = cfg.projectile_speed
         state.projectiles.append({
             "x": u.x, "y": u.y, "team": u.team,
-            "target_id": tid, "damage": dmg, "splash": u.splash,
-            "speed": cfg.projectile_speed, "alive": true,
+            "vx": dx / dist * spd, "vy": dy / dist * spd,
+            "damage": dmg, "splash": u.splash,
+            "pierce": u.pierce,
+            "remaining": dist,   # ปกติ: วิ่งไกลเท่านี้แล้วตก (pierce ไม่สน)
+            "hit": {},           # pierce: index ที่โดนแล้ว (ตัวละครั้ง)
+            "alive": true,
         })
     else:
         _deal(state, u.team, t.x, t.y, dmg, u.splash, tid)
@@ -162,25 +171,73 @@ static func _update_projectiles(state: GameState, cfg: BattleConfig, dt: float) 
     for p in state.projectiles:
         if not p.alive:
             continue
-        var tid: int = p.target_id
-        if tid < 0 or tid >= state.units.size() or not state.units[tid].alive:
-            p.alive = false
-            any_dead = true
-            continue
-        var t: Dictionary = state.units[tid]
-        var dx: float = t.x - p.x
-        var dy: float = t.y - p.y
-        var dist: float = sqrt(dx * dx + dy * dy)
-        var step: float = p.speed * dt
-        if dist <= step or dist <= 0.0001:
-            _deal(state, p.team, t.x, t.y, p.damage, p.splash, tid)
-            p.alive = false
-            any_dead = true
+        var sx: float = p.vx * dt
+        var sy: float = p.vy * dt
+        if p.pierce:
+            # บาริสต้า: วิ่งตรงเรื่อยๆ ทะลุโดนศัตรูทุกตัวในเส้นทาง (ตัวละครั้ง) จนออกแมพ
+            p.x += sx
+            p.y += sy
+            _pierce_hits(state, cfg, p)
+            if p.x < -50.0 or p.x > cfg.width + 50.0 or p.y < -50.0 or p.y > cfg.height + 50.0:
+                p.alive = false
+                any_dead = true
         else:
-            p.x += dx / dist * step
-            p.y += dy / dist * step
+            # กระสุนปกติ: วิ่งถึงระยะที่เล็งไว้แล้ว "ตก" ระเบิดโดนศัตรูแถวนั้น
+            var step_len: float = sqrt(sx * sx + sy * sy)
+            if step_len >= p.remaining:
+                var f: float = p.remaining / maxf(step_len, 0.0001)
+                p.x += sx * f
+                p.y += sy * f
+                _land(state, cfg, p)
+                p.alive = false
+                any_dead = true
+            else:
+                p.x += sx
+                p.y += sy
+                p.remaining -= step_len
     if any_dead:
         state.projectiles = state.projectiles.filter(func(pp): return pp.alive)
+
+
+## กระสุนปกติตก → โดนศัตรูในรัศมี (splash ถ้ามี, ไม่มี = รัศมีเล็ก)
+static func _land(state: GameState, cfg: BattleConfig, p: Dictionary) -> void:
+    var r: float = p.splash if p.splash > 0.0 else cfg.projectile_hit_radius
+    _damage_area(state, p.team, p.x, p.y, p.damage, r)
+
+
+## ลงดาเมจศัตรูฝั่งตรงข้ามในรัศมี r รอบ (x,y) — เคารพ block + ปล่อยเลขดาเมจ
+static func _damage_area(state: GameState, team: int, x: float, y: float, dmg: float, r: float) -> void:
+    var r2: float = r * r
+    for o in state.units:
+        if o.alive and o.targetable and o.team != team:
+            var dx: float = o.x - x
+            var dy: float = o.y - y
+            if dx * dx + dy * dy <= r2:
+                if o.block > 0:
+                    o.block -= 1
+                    continue
+                o.hp -= dmg
+                if team == 0:
+                    state.damage_events.append({"x": o.x, "y": o.y, "amount": dmg})
+
+
+## กระสุน pierce: โดนศัตรูที่อยู่ในแนวเส้น ณ จุดนี้ (ที่ยังไม่เคยโดน)
+static func _pierce_hits(state: GameState, cfg: BattleConfig, p: Dictionary) -> void:
+    var r2: float = cfg.projectile_pierce_radius * cfg.projectile_pierce_radius
+    for i in state.units.size():
+        var o: Dictionary = state.units[i]
+        if not o.alive or o.team == p.team or not o.targetable or p.hit.has(i):
+            continue
+        var dx: float = o.x - p.x
+        var dy: float = o.y - p.y
+        if dx * dx + dy * dy <= r2:
+            p.hit[i] = true
+            if o.block > 0:
+                o.block -= 1
+                continue
+            o.hp -= p.damage
+            if p.team == 0:
+                state.damage_events.append({"x": o.x, "y": o.y, "amount": p.damage})
 
 
 static func _cleanup_deaths(state: GameState) -> void:

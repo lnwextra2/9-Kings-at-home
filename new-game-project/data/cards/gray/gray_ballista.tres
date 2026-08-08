@@ -22,4 +22,5 @@ growth_hp = 0.25
 growth_attack = 0.5
 growth_attack_speed = 0.0
 growth_crit = 0.05
+pierce = true
 cost = 5

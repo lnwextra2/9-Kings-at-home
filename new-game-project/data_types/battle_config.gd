@@ -28,7 +28,9 @@ extends Resource
 @export_group("Combat")
 @export var base_touch_radius: float = 28.0   # ศัตรูเข้าใกล้ฐานเท่านี้ = แตะ (จบเวฟ)
 @export var retarget_interval: float = 0.2
-@export var projectile_speed: float = 320.0
+@export var projectile_speed: float = 600.0   # เร็วขึ้น (ballistic เส้นตรง)
+@export var projectile_hit_radius: float = 10.0   # กระสุนปกติตก = โดนศัตรูในรัศมีนี้ (ถ้าไม่มี splash)
+@export var projectile_pierce_radius: float = 12.0 # ความกว้างเส้นกระสุนทะลุ (บาริสต้า)
 @export var ranged_min_range: float = 60.0    # attack_range เกินนี้ = ยิง projectile (ranged)
 @export var hash_cell: float = 64.0           # ขนาด cell ของ spatial hash (หาเป้า)
 @export var crit_mult: float = 2.0            # โจมตีคริ = ดาเมจ × ค่านี้
