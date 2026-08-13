@@ -11,6 +11,7 @@ extends RefCounted
 static func spawn_player(state: GameState, cfg: BattleConfig) -> Array:
     var out: Array = []
     var soldiers: Array = []   # {inst, bx, by} — ทหาร 1 ยูนิต + ตำแหน่งช่องที่ออก
+    var warpers: Array = []    # {inst, bx, by} — goblin: วาร์ปไปหลังแนวศัตรู (ไม่ตั้งแถว)
     var wall_hp: float = 0.0
     for idx in state.board.size():
         var c = state.board[idx]
@@ -25,13 +26,15 @@ static func spawn_player(state: GameState, cfg: BattleConfig) -> Array:
             var cnt: int = int(c.cur_count)
             if d.count_per_gold > 0:                              # mercenary: fix count ตามทอง (ไม่ขึ้น level)
                 cnt = 1 + state.gold / d.count_per_gold
+            var bucket: Array = warpers if d.warp_backline else soldiers   # goblin แยกไปวาร์ป
             for n in cnt + Blessing.count_add(state):             # พร +count ทุกเวฟ
-                soldiers.append({"inst": c, "bx": bx, "by": by})
+                bucket.append({"inst": c, "bx": bx, "by": by})
         elif d.kind == CardData.Kind.BUILDING and d.max_hp > 0.0:
             wall_hp += float(c.cur_hp)   # กำแพง — รวม HP ทุกใบ
         else:
             out.append(Unit.from_instance(0, c, bx, by))   # ฐาน/ป้อม/ซัพพอร์ต ที่ช่อง
     _place_formation(out, soldiers, cfg)
+    _place_warpers(out, warpers, cfg)
     if wall_hp > 0.0:
         out.append(Unit.make_wall(wall_hp, cfg.wall_x, cfg.height * 0.5))
     _apply_blessings(state, out)
@@ -51,6 +54,21 @@ static func _apply_blessings(state: GameState, out: Array) -> void:
         if u.kind == CardData.Kind.SOLDIER and hm != 1.0:
             u.hp *= hm
             u.max_hp *= hm
+
+
+## goblin วาร์ป: โผล่ที่ warp_x (หลังแนวศัตรู) กระจายเต็มความสูง — ไม่ตั้งแถว ไม่เดิน
+static func _place_warpers(out: Array, warpers: Array, cfg: BattleConfig) -> void:
+    var total: int = warpers.size()
+    if total == 0:
+        return
+    var margin: float = cfg.enemy_y_margin
+    var span: float = cfg.height - 2.0 * margin
+    for i in total:
+        var t: float = 0.0 if total <= 1 else float(i) / float(total - 1)
+        var wx: float = cfg.warp_x + (i % 2) * cfg.enemy_spread * 0.5   # สลับ x นิดกันซ้อน
+        var wy: float = margin + t * span
+        var e: Dictionary = warpers[i]
+        out.append(Unit.from_instance(0, e.inst, wx, wy))   # โผล่ที่ backline ทันที (marching=false)
 
 
 static func _place_formation(out: Array, soldiers: Array, cfg: BattleConfig) -> void:

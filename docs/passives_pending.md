@@ -15,7 +15,10 @@
   - เพิ่ม `cur_move_mult` ใน instance (move_speed เดิมอ่านจาก CardData ตรงๆ ไม่มีที่เก็บบัฟถาวร) → `Unit.from_instance` คูณให้
   - buff_event kind=&"grow" → main.gd โชว์ "+N% ALL" (ส้มแดง)
 
-**ยังไม่ทำ:** #1 imp (ไม่ต้องทำ) · #3 goblin warp · #8 crystal (stack ×2 จากการ์ดบัฟ)
+- ✅ #3 goblin — `CardData.warp_backline` (bool) → `Spawner._place_warpers`: โผล่ที่ `cfg.warp_x` (985, หลังแนวศัตรู)
+  กระจายเต็มความสูง, marching=false (ไม่ตั้งแถว/ไม่เดิน) → targeting ปกติจับศัตรูรั้งท้ายเอง
+
+**ยังไม่ทำ:** #1 imp (ไม่ต้องทำ) · #8 crystal (stack ×2 จากการ์ดบัฟ)
 
 ## นิยามกลาง (ใช้ร่วมทุกใบ)
 - **"รอบตัว" = แนว + เท่านั้น** (บน/ล่าง/ซ้าย/ขวา) — ไม่นับแนวทแยง
