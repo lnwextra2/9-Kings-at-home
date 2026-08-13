@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://sgld0merc0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/swordsman.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"gold_mercenary"
+display_name = "ทหารรับจ้าง"
+sprite = ExtResource("2")
+color = &"gold"
+kind = 0
+description = "ทหารเดี่ยว HP สูง ตีเร็ว"
+max_hp = 34.0
+attack = 9.0
+attack_cd = 1.5
+attack_range = 26.0
+move_speed = 40.0
+crit = 0.05
+base_count = 1
+growth_hp = 0.30
+growth_attack = 0.25
+growth_attack_speed = 0.25
+cost = 5

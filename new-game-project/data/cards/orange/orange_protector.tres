@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://sorn0protect0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/soldier.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"orange_protector"
+display_name = "ผู้ปกป้อง"
+sprite = ExtResource("2")
+color = &"orange"
+kind = 0
+description = "แทงค์ไม่โจมตี HP x2/lv (กลไกสะท้อนดาเมจยังไม่ทำ)"
+max_hp = 32.0
+attack = 0.0
+attack_cd = 999.0
+attack_range = 20.0
+move_speed = 20.0
+crit = 0.0
+base_count = 3
+growth_hp = 1.0
+growth_attack = 0.0
+growth_attack_speed = 0.0
+cost = 4

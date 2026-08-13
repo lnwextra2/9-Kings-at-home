@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://sgrn0boar0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/soldier.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"green_boar"
+display_name = "หมูป่า"
+sprite = ExtResource("2")
+color = &"green"
+kind = 0
+description = "HP โตไว x2/lv (กลไกพาหนะให้ทหารขี่ +1%/hp ยังไม่ทำ)"
+max_hp = 15.0
+attack = 6.0
+attack_cd = 1.7
+attack_range = 26.0
+move_speed = 55.0
+crit = 0.05
+base_count = 6
+growth_hp = 1.0
+growth_attack = 0.0
+growth_attack_speed = 0.0
+cost = 4

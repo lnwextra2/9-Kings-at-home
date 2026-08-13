@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://sorn0labrat0v"]
+
+[ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/goblin.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"orange_labrat"
+display_name = "หนูทดลอง"
+sprite = ExtResource("2")
+color = &"orange"
+kind = 0
+description = "โตช้า (กลไกไม่มี max lv + แพร่ level เพื่อนบ้าน ยังไม่ทำ)"
+max_hp = 8.0
+attack = 4.0
+attack_cd = 3.33
+attack_range = 20.0
+move_speed = 40.0
+crit = 0.0
+base_count = 2
+growth_hp = 0.04
+growth_attack = 0.04
+growth_attack_speed = 0.04
+cost = 3
