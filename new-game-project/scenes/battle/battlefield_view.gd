@@ -20,6 +20,9 @@ signal combat_ended
 @export var corpse_tint: Color = Color(0.5, 0.5, 0.55, 0.9)   # โทนซีด/หม่นของศพ
 @export var corpse_angle_deg: float = 88.0                     # องศานอน (~90 = ล้มราบ)
 
+@export_group("Leap")   # goblin กระโดดข้ามสนาม — ยก sprite เป็น arc
+@export var leap_height: float = 70.0   # ความสูงสุดของ arc ตอนกระโดด (px)
+
 var _accum: float = 0.0
 var _ended: bool = false
 var _mmis: Dictionary = {}          # data_id -> MultiMeshInstance2D (ยูนิตเป็น)
@@ -101,7 +104,8 @@ func _sync_multimesh(st: GameState) -> void:
             if not u.immobile:
                 bob = absf(sin(t * bob_speed + (u.x + u.y) * 0.05)) * bob_amp
             var ang: float = deg_to_rad(45.0) if u.attacking else 0.0
-            var pos := Vector2(u.x, u.y - bob)
+            var lift: float = sin(u.leap_prog * PI) * leap_height if u.leaping else 0.0   # arc กระโดด
+            var pos := Vector2(u.x, u.y - bob - lift)
             if u.team == 0:
                 mm.set_instance_transform_2d(i, Transform2D(ang, pos))
             else:
@@ -263,7 +267,8 @@ func _draw() -> void:
             _draw_wall(u, cfg)
             continue
         var d: CardData = Content.card(u.data_id)
-        var pos: Vector2 = field_origin + Vector2(u.x, u.y)
+        var lift: float = sin(u.leap_prog * PI) * leap_height if u.leaping else 0.0   # HP bar ยกตาม arc
+        var pos: Vector2 = field_origin + Vector2(u.x, u.y - lift)
         if d.sprite == null:
             draw_rect(Rect2(pos.x - unit_radius, pos.y - unit_radius, unit_radius * 2.0, unit_radius * 2.0), Color(0.5, 0.5, 0.55))
         if u.max_hp > 0.0:

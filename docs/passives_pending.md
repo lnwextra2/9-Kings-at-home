@@ -15,8 +15,11 @@
   - เพิ่ม `cur_move_mult` ใน instance (move_speed เดิมอ่านจาก CardData ตรงๆ ไม่มีที่เก็บบัฟถาวร) → `Unit.from_instance` คูณให้
   - buff_event kind=&"grow" → main.gd โชว์ "+N% ALL" (ส้มแดง)
 
-- ✅ #3 goblin — `CardData.warp_backline` (bool) → `Spawner._place_warpers`: โผล่ที่ `cfg.warp_x` (985, หลังแนวศัตรู)
-  กระจายเต็มความสูง, marching=false (ไม่ตั้งแถว/ไม่เดิน) → targeting ปกติจับศัตรูรั้งท้ายเอง
+- ✅ #3 goblin — `CardData.warp_backline` (bool): **เดินตั้งแถวปกติก่อน** แล้ว **กระโดด** ข้ามไป `cfg.warp_x` (985 หลังแนวศัตรู)
+  - forming มี 2 เฟส: march (form_duration) → leap (leap_duration) — freeze การสู้ทั้ง 2 เฟส
+  - unit fields: will_leap/leaping/leap_fx,fy/leap_tx,ty/leap_prog; state.leaping/leap_t
+  - `Combat._tick_leaping` lerp leap_from→leap_to; view ยก sprite เป็น arc `sin(leap_prog·π)·leap_height`
+  - ลงแล้ว targeting ปกติจับศัตรูรั้งท้ายเอง (ตีจากด้านหลัง)
 
 **ยังไม่ทำ:** #1 imp (ไม่ต้องทำ) · #8 crystal (stack ×2 จากการ์ดบัฟ)
 

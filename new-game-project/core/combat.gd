@@ -103,7 +103,11 @@ static func _acquire_target(units: Array, u: Dictionary, hash: SpatialHash) -> i
 
 
 ## ช่วงตั้งแถว: interpolate ทุกทหาร march_from → march_to ด้วย t เดียวกัน (ถึงพร้อมกันใน form_duration)
+## ตั้งแถวเสร็จ → ถ้ามีทหาร will_leap (goblin) เข้าเฟส leap ต่อ (ยัง freeze การสู้) ไม่งั้นเริ่มสู้เลย
 static func _tick_forming(state: GameState, cfg: BattleConfig, dt: float) -> void:
+    if state.leaping:
+        _tick_leaping(state, cfg, dt)
+        return
     state.form_t += dt
     var t: float = clampf(state.form_t / maxf(cfg.form_duration, 0.001), 0.0, 1.0)
     var te: float = t * t * (3.0 - 2.0 * t)   # smoothstep (ออกตัว/เข้าที่นุ่ม)
@@ -112,11 +116,43 @@ static func _tick_forming(state: GameState, cfg: BattleConfig, dt: float) -> voi
             u.x = lerpf(u.march_fx, u.march_tx, te)
             u.y = lerpf(u.march_fy, u.march_ty, te)
     if t >= 1.0:
+        var has_leap := false
         for u in state.units:
             if u.marching:
                 u.x = u.march_tx
                 u.y = u.march_ty
                 u.marching = false
+            if u.will_leap:                    # เริ่มกระโดดจากจุดยืนในแถว
+                u.leap_fx = u.x
+                u.leap_fy = u.y
+                u.leaping = true
+                has_leap = true
+        if has_leap:
+            state.leaping = true
+            state.leap_t = 0.0
+        else:
+            state.forming = false
+
+
+## ช่วงกระโดด (goblin): interpolate leap_from → leap_to; view คำนวณ arc จาก leap_prog
+static func _tick_leaping(state: GameState, cfg: BattleConfig, dt: float) -> void:
+    state.leap_t += dt
+    var t: float = clampf(state.leap_t / maxf(cfg.leap_duration, 0.001), 0.0, 1.0)
+    var te: float = t * t * (3.0 - 2.0 * t)
+    for u in state.units:
+        if u.leaping:
+            u.x = lerpf(u.leap_fx, u.leap_tx, te)
+            u.y = lerpf(u.leap_fy, u.leap_ty, te)
+            u.leap_prog = t
+    if t >= 1.0:
+        for u in state.units:
+            if u.leaping:
+                u.x = u.leap_tx
+                u.y = u.leap_ty
+                u.leaping = false
+                u.will_leap = false
+                u.leap_prog = 0.0
+        state.leaping = false
         state.forming = false
 
 

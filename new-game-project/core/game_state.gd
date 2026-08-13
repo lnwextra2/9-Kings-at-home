@@ -42,6 +42,8 @@ var buff_events: Array = []            # feed เลขบัฟบนกระ�
 var combat_time: float = 0.0
 var forming: bool = false              # ช่วงทหารเดินจากช่องมาตั้งแถว (freeze การสู้)
 var form_t: float = 0.0                # เวลาสะสมของ forming (0..form_duration)
+var leaping: bool = false              # ช่วง goblin กระโดดข้ามไป backline (ต่อจาก forming, ยัง freeze)
+var leap_t: float = 0.0                # เวลาสะสมของ leap (0..leap_duration)
 var result: StringName = &""           # "" / "win" / "lose"
 var base_unit: int = -1                # index ใน units ของฐาน (จุดที่ศัตรูมุ่งเข้าเมื่อทหารเราหมด)
 var battle_cfg: BattleConfig           # config สนามรบ (set โดย Game; Resource ใช้ใน core ได้)

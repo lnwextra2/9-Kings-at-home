@@ -17,7 +17,8 @@ extends Resource
 @export var enemy_x: float = 940.0
 @export var enemy_y_margin: float = 40.0
 @export var enemy_spread: float = 26.0
-@export var warp_x: float = 985.0        # x ที่ goblin วาร์ปไปโผล่ (หลังแนวศัตรู, ใกล้ขอบขวา)
+@export var warp_x: float = 985.0        # x ที่ goblin กระโดดไปลง (หลังแนวศัตรู, ใกล้ขอบขวา)
+@export var leap_duration: float = 0.5   # เวลากระโดดข้ามสนามของ goblin (วิ) — หลังตั้งแถวเสร็จ
 
 @export_group("Our Formation (soldiers + wall)")
 @export var front_x: float = 520.0       # แนวหน้าสุดของทหาร (แถวแรก)

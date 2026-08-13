@@ -145,6 +145,8 @@ static func _begin_combat(state: GameState) -> bool:
     state.buff_events = []
     state.combat_time = 0.0
     state.form_t = 0.0
+    state.leaping = false
+    state.leap_t = 0.0
     state.forming = _any_marching(state)   # มีทหารต้องเดินไหม (ไม่มีก็สู้เลย)
     state.result = &""
     state.phase = &"combat"

@@ -75,6 +75,11 @@ static func _blank(team: int, d: CardData, x: float, y: float) -> Dictionary:
         "marching": false,           # เดินจากช่องกระดานไปตั้งแถว (ก่อนสู้)
         "march_fx": x, "march_fy": y,   # จุดออก (ตำแหน่งช่อง)
         "march_tx": x, "march_ty": y,   # จุดยืนในแถว
+        "will_leap": false,          # goblin: จะกระโดดไป backline หลังตั้งแถวเสร็จ
+        "leaping": false,            # กำลังกระโดด (view ยก sprite เป็น arc)
+        "leap_fx": x, "leap_fy": y,   # จุดออกตอนกระโดด (= จุดยืนในแถว)
+        "leap_tx": x, "leap_ty": y,   # จุดลง (หลังแนวศัตรู)
+        "leap_prog": 0.0,            # 0..1 ความคืบหน้าการกระโดด (view คำนวณความสูง arc)
         "attack_cd": 1.0,
         "attack_range": d.attack_range,
         "move_speed": d.move_speed,
