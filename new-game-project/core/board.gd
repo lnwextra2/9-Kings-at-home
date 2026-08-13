@@ -87,9 +87,11 @@ static func use_card(state: GameState, data_id: StringName, slot: int) -> bool:
             var td: CardData = Content.card(target.data_id)
             if td.kind != CardData.Kind.SOLDIER:
                 return false   # บัฟใช้กับทหารเท่านั้น
+            var mult: int = 2 if td.double_buff_stacks else 1   # crystal: รับ stack ×2
             for k in d.abilities:
-                target.abilities[k] = int(target.abilities.get(k, 0)) + int(d.abilities[k])
-                state.buff_events.append({"slot": slot, "kind": &"ability", "ability": k, "stacks": int(d.abilities[k])})
+                var add: int = int(d.abilities[k]) * mult
+                target.abilities[k] = int(target.abilities.get(k, 0)) + add
+                state.buff_events.append({"slot": slot, "kind": &"ability", "ability": k, "stacks": add})
             return true
         CardData.Kind.TOME:
             # กันใช้ตำราอัพเกรดตอนเลเวลเต็ม (Lv3) — ไม่กินการ์ด

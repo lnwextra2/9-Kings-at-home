@@ -21,7 +21,10 @@
   - `Combat._tick_leaping` lerp leap_from→leap_to; view ยก sprite เป็น arc `sin(leap_prog·π)·leap_height`
   - ลงแล้ว targeting ปกติจับศัตรูรั้งท้ายเอง (ตีจากด้านหลัง)
 
-**ยังไม่ทำ:** #1 imp (ไม่ต้องทำ) · #8 crystal (stack ×2 จากการ์ดบัฟ)
+- ✅ #8 crystal — `CardData.double_buff_stacks` (bool): ตอน `Board.use_card` BUFF branch คูณ ability stack ×2
+  ถ้าเป้าเป็น crystal (block/lifesteal ฯลฯ ×2); TOME (stat/level) branch ไม่แตะ = บัฟ stat เท่าเดิม
+
+**✅ ครบทั้ง 9 ใบแล้ว** (imp ไม่ต้องมี passive) — passive plain soldiers เสร็จสมบูรณ์
 
 ## นิยามกลาง (ใช้ร่วมทุกใบ)
 - **"รอบตัว" = แนว + เท่านั้น** (บน/ล่าง/ซ้าย/ขวา) — ไม่นับแนวทแยง
