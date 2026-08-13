@@ -1,7 +1,16 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://srbw0slime0v"]
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://srbw0slime0v"]
 
 [ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/soldier.svg" id="2"]
+[ext_resource type="Script" path="res://data_types/effect_data.gd" id="3"]
+
+[sub_resource type="Resource" id="EffSlimeSplit"]
+script = ExtResource("3")
+trigger = 0
+action = 6
+target = 0
+value = 1.0
+scales_with_level = false
 
 [resource]
 script = ExtResource("1")
@@ -10,7 +19,7 @@ display_name = "สไลม์"
 sprite = ExtResource("2")
 color = &"rainbow"
 kind = 0
-description = "ทหารประชิด HP น้อย ดาเมจโตไว"
+description = "ทหารประชิด HP น้อย ดาเมจโตไว — จบเทิร์นก็อปตัวเองลงช่องว่างข้างเคียง 1 ช่อง"
 max_hp = 14.0
 attack = 1.5
 attack_cd = 1.4
@@ -21,4 +30,5 @@ base_count = 3
 growth_hp = 0.25
 growth_attack = 0.5
 growth_attack_speed = 0.05
+effects = Array[ExtResource("3")]([SubResource("EffSlimeSplit")])
 cost = 4

@@ -22,7 +22,10 @@ static func spawn_player(state: GameState, cfg: BattleConfig) -> Array:
         var bx: float = cfg.our_x0 + col * cfg.our_col_dx
         var by: float = cfg.our_y0 + row * cfg.our_row_dy
         if d.kind == CardData.Kind.SOLDIER:
-            for n in int(c.cur_count) + Blessing.count_add(state):   # พร +count ทุกเวฟ
+            var cnt: int = int(c.cur_count)
+            if d.count_per_gold > 0:                              # mercenary: fix count ตามทอง (ไม่ขึ้น level)
+                cnt = 1 + state.gold / d.count_per_gold
+            for n in cnt + Blessing.count_add(state):             # พร +count ทุกเวฟ
                 soldiers.append({"inst": c, "bx": bx, "by": by})
         elif d.kind == CardData.Kind.BUILDING and d.max_hp > 0.0:
             wall_hp += float(c.cur_hp)   # กำแพง — รวม HP ทุกใบ

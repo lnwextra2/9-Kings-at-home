@@ -3,8 +3,14 @@
 ทหาร "plain 9 ใบ" ที่สร้างไว้ (stat-only) จริงๆ มี passive skill ประจำตัว — ต่อไปนี้คือ spec
 ที่ผู้ใช้ให้มา — ต้องอธิบายก่อนทำทีละใบ (process rule เดิม)
 
-**สถานะ:** ✅ #2 sniper (BACKLINE) + #5 executioner (LOWEST_HP) = ทำแล้ว ผ่าน `CardData.target_mode`
-(NEAREST/BACKLINE/LOWEST_HP) → bake ลง unit → `Combat._acquire_target` dispatch. ที่เหลือยังไม่ทำ
+**สถานะ ทำแล้ว:**
+- ✅ #2 sniper (BACKLINE) + #5 executioner (LOWEST_HP) — `CardData.target_mode` → bake ลง unit → `Combat._acquire_target`
+- ✅ #4 mercenary — `CardData.count_per_gold` (>0 = fix count = 1 + gold/ค่านี้, ไม่ขึ้นกับ level) คิดตอน `Spawner.spawn_player`
+- ✅ #6 ant (+9 count จบเทิร์น) — data ล้วน: EffectData END_TURN/MODIFY_STAT/SELF/count/flat/ไม่ scale level
+- ✅ #9 slime — `EffectData.Action.CLONE_SELF` (สุ่ม 1 ช่องว่างแนว + ที่ไม่ล็อก, ก็อป stat/level ปัจจุบัน)
+  - แถม: `TurnResolver.resolve` ใช้ snapshot ต้นเทิร์นแล้ว → การ์ดที่เกิดใหม่ไม่ทำงานซ้ำในเทิร์นเดียวกัน (กัน cascade)
+
+**ยังไม่ทำ:** #1 imp (ไม่ต้องทำ) · #3 goblin warp · #7 orc · #8 crystal
 
 ## นิยามกลาง (ใช้ร่วมทุกใบ)
 - **"รอบตัว" = แนว + เท่านั้น** (บน/ล่าง/ซ้าย/ขวา) — ไม่นับแนวทแยง

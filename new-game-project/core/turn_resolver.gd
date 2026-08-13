@@ -8,7 +8,13 @@ extends RefCounted
 
 static func resolve(state: GameState) -> void:
     var burst: Array = [0]   # ตัวนับลำดับ (ห่อ array เพื่อส่งต่อแบบแก้ค่าได้)
+    # snapshot ช่องที่มีการ์ด "ตอนต้นเทิร์น" — การ์ดที่เกิดใหม่ระหว่างเทิร์น (สไลม์ clone)
+    # ต้องไม่ทำงานต่อในเทิร์นเดียวกัน (ไม่งั้น cascade เพิ่มทวีคูณ)
+    var acting: Array = []
     for idx in state.board.size():
+        if state.board[idx] is Dictionary:
+            acting.append(idx)
+    for idx in acting:
         var c = state.board[idx]
         if not (c is Dictionary):
             continue
@@ -42,6 +48,15 @@ static func _fire(state: GameState, idx: int, e: EffectData, burst: Array) -> vo
                         "amount": e.value, "is_percent": e.is_percent, "burst": burst[0],
                     })
                 burst[0] += 1                          # เป้าของครั้งนี้ = burst เดียว (หมู่=พร้อมกัน), ครั้งถัดไป=burst ใหม่ (รัวๆ)
+            EffectData.Action.CLONE_SELF:
+                # ก็อปตัวเอง (stat/level ปัจจุบัน) ลง "ช่องว่าง" ข้างเคียง 1 ช่อง — ช่องล็อกไม่นับ (สไลม์)
+                var empties: Array = _empty_neighbors(state, idx)
+                if empties.is_empty():
+                    continue
+                var dst: int = state.rng.pick(empties)
+                state.board[dst] = source.duplicate(true)
+                state.buff_events.append({"slot": dst, "kind": &"clone", "burst": burst[0]})
+                burst[0] += 1
 
 
 ## target → รายการ "slot index" ที่โดนผล (คืน index เพื่อให้ view เด้งเลขถูกช่อง)
@@ -68,6 +83,18 @@ static func _neighbor_slots(state: GameState, idx: int, e: EffectData) -> Array:
         if not (c is Dictionary):
             continue
         if count_only and Content.card(c.data_id).kind != CardData.Kind.SOLDIER:
+            continue
+        out.append(n)
+    return out
+
+
+## ช่องเพื่อนบ้าน (แนว + ) ที่ "วางการ์ดได้แต่ยังว่าง" — ช่องที่ยังล็อกไม่นับ
+static func _empty_neighbors(state: GameState, idx: int) -> Array:
+    var out: Array = []
+    for n in Board.neighbors_4(state, idx):
+        if state.is_locked(n):
+            continue
+        if state.board[n] is Dictionary:
             continue
         out.append(n)
     return out

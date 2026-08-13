@@ -27,6 +27,7 @@ enum TargetMode { NEAREST, BACKLINE, LOWEST_HP }
 
 @export_group("Scaling")
 @export var base_count: int = 1           # จำนวนทหารพื้นฐาน (soldier); count = base_count × level
+@export var count_per_gold: int = 0       # >0 = fix count = 1 + ทอง/ค่านี้ (ไม่ขึ้นกับ level) — mercenary
 @export var growth_hp: float = 0.3        # compound %: stat × (1+growth)^(lv-1)
 @export var growth_attack: float = 0.3
 @export var growth_attack_speed: float = 0.1
