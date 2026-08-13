@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://dak0expand0v"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://dak0expand0v"]
 
 [ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
 [ext_resource type="Script" path="res://core/hooks/expand_hooks.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/expand.svg" id="3"]
 
 [resource]
 script = ExtResource("1")
 id = &"expand"
 display_name = "ขยาย"
+sprite = ExtResource("3")
 color = &"gray"
 kind = 5
 description = "โทมใช้ครั้งเดียว: ใช้บนช่องที่มีการ์ด → ทำลายการ์ดนั้น → รับการ์ด 1×เลเวลใบ → ปลดล็อกช่องแนว + (4 ทิศ)"

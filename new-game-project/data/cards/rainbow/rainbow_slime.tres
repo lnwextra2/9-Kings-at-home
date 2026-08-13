@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://srbw0slime0v"]
 
 [ext_resource type="Script" path="res://data_types/card_data.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/soldier.svg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/rainbow_slime.svg" id="2"]
 [ext_resource type="Script" path="res://data_types/effect_data.gd" id="3"]
 
 [sub_resource type="Resource" id="EffSlimeSplit"]

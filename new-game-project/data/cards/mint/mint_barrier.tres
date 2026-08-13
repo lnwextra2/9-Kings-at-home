@@ -2,11 +2,13 @@
 
 [ext_resource type="Script" uid="uid://b3c553s8svub4" path="res://data_types/card_data.gd" id="1"]
 [ext_resource type="Script" uid="uid://cv4ownguf8vtj" path="res://data_types/effect_data.gd" id="1_e2dfu"]
+[ext_resource type="Texture2D" path="res://assets/sprites/mint_barrier.svg" id="2"]
 
 [resource]
 script = ExtResource("1")
 id = &"mint_barrier"
 display_name = "เกราะกำบัง"
+sprite = ExtResource("2")
 color = &"mint"
 kind = 4
 description = "บัฟถาวร: ทหารเป้าหมายกันดาเมจได้ +1 ครั้ง/ตัว (สะสม stack ได้)"
