@@ -15,6 +15,7 @@ static func make_instance(data_id: StringName) -> Dictionary:
         "cur_attack": d.attack,
         "cur_aspd": 1.0,          # ตัวคูณความเร็วโจมตี (1.0 = ปกติ)
         "cur_crit": d.crit,       # โอกาสคริ (additive growth)
+        "cur_move_mult": 1.0,     # ตัวคูณ move_speed (บัฟถาวร เช่น orc); 1.0 = ปกติ
         "cur_count": cnt,         # soldier = base_count; โครงสร้าง = 1
         "abilities": d.abilities.duplicate(true),
         "no_spawn": false,

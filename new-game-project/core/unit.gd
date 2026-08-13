@@ -15,6 +15,7 @@ static func from_instance(team: int, inst: Dictionary, x: float, y: float) -> Di
     if d.multishot:
         u.shots = maxi(1, int(inst.cur_count))       # ป้อมยิงหลายเป้า: cur_count = จำนวนนัด/ครั้ง
     u.attack_cd = d.attack_cd / maxf(inst.cur_aspd, 0.01)   # aspd_mult ย่น cooldown
+    u.move_speed = d.move_speed * float(inst.get(&"cur_move_mult", 1.0))   # บัฟ speed ถาวร (orc)
     if u.immobile and u.attack > 0.0:
         u.attack_range = 1.0e9   # ป้อม/ฐาน (อยู่กับที่ + โจมตี) = ยิงทั้งสนาม
     return u

@@ -10,7 +10,12 @@
 - ✅ #9 slime — `EffectData.Action.CLONE_SELF` (สุ่ม 1 ช่องว่างแนว + ที่ไม่ล็อก, ก็อป stat/level ปัจจุบัน)
   - แถม: `TurnResolver.resolve` ใช้ snapshot ต้นเทิร์นแล้ว → การ์ดที่เกิดใหม่ไม่ทำงานซ้ำในเทิร์นเดียวกัน (กัน cascade)
 
-**ยังไม่ทำ:** #1 imp (ไม่ต้องทำ) · #3 goblin warp · #7 orc · #8 crystal
+- ✅ #7 orc (บัฟ **ถาวร** +5% all stat/ช่องว่าง) — `EffectData.Action.GROW_ALL_PER_EMPTY` (value=0.05, END_TURN)
+  จบเทิร์นคูณ cur_hp/cur_attack/cur_aspd/cur_crit/cur_move_mult ×(1+v)^(ช่องว่างแนว + ) **ถาวรบน instance** สะสมทบทุกเทิร์น (ค้างข้าม combat)
+  - เพิ่ม `cur_move_mult` ใน instance (move_speed เดิมอ่านจาก CardData ตรงๆ ไม่มีที่เก็บบัฟถาวร) → `Unit.from_instance` คูณให้
+  - buff_event kind=&"grow" → main.gd โชว์ "+N% ALL" (ส้มแดง)
+
+**ยังไม่ทำ:** #1 imp (ไม่ต้องทำ) · #3 goblin warp · #8 crystal (stack ×2 จากการ์ดบัฟ)
 
 ## นิยามกลาง (ใช้ร่วมทุกใบ)
 - **"รอบตัว" = แนว + เท่านั้น** (บน/ล่าง/ซ้าย/ขวา) — ไม่นับแนวทแยง

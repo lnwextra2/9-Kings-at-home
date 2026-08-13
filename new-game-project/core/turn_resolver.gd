@@ -48,6 +48,20 @@ static func _fire(state: GameState, idx: int, e: EffectData, burst: Array) -> vo
                         "amount": e.value, "is_percent": e.is_percent, "burst": burst[0],
                     })
                 burst[0] += 1                          # เป้าของครั้งนี้ = burst เดียว (หมู่=พร้อมกัน), ครั้งถัดไป=burst ใหม่ (รัวๆ)
+            EffectData.Action.GROW_ALL_PER_EMPTY:
+                # orc: จบเทิร์นได้ +value% ทุก stat "ถาวร" ต่อ 1 ช่องว่างรอบตัว (แนว + )
+                # ทบต้นสะสมทุกเทิร์น (แก้ cur_* บนการ์ดเลย = ค้างข้าม combat)
+                var empt: int = _empty_neighbors(state, idx).size()
+                if empt == 0:
+                    continue
+                var f: float = pow(1.0 + e.value, float(empt))
+                source.cur_hp *= f
+                source.cur_attack *= f
+                source.cur_aspd *= f
+                source.cur_crit = minf(source.cur_crit * f, 1.0)
+                source.cur_move_mult = float(source.get(&"cur_move_mult", 1.0)) * f
+                state.buff_events.append({"slot": idx, "kind": &"grow", "amount": f - 1.0, "burst": burst[0]})
+                burst[0] += 1
             EffectData.Action.CLONE_SELF:
                 # ก็อปตัวเอง (stat/level ปัจจุบัน) ลง "ช่องว่าง" ข้างเคียง 1 ช่อง — ช่องล็อกไม่นับ (สไลม์)
                 var empties: Array = _empty_neighbors(state, idx)
