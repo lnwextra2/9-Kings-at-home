@@ -34,7 +34,7 @@ static func tick(state: GameState, dt: float) -> void:
 
         # หาเป้าใหม่เมื่อ: ครบรอบ retarget / เป้าเดิมตาย — ไม่ re-scan ทุก tick ตอนไม่มีเป้า
         if u.retarget_timer <= 0.0 or (u.target_id != -1 and not _valid_target(units, u.target_id, u.team)):
-            u.target_id = hash.nearest_enemy(units, u)
+            u.target_id = _acquire_target(units, u, hash)
             u.retarget_timer = cfg.retarget_interval
 
         var tid: int = u.target_id
@@ -65,6 +65,41 @@ static func tick(state: GameState, dt: float) -> void:
     _update_bombs(state)
     _cleanup_deaths(state)
     _check_end(state, touched_base)
+
+
+## เลือกเป้าตาม passive: NEAREST ใช้ spatial hash (เร็ว, ศัตรูทุกตัวใช้อันนี้)
+## BACKLINE/LOWEST_HP = สแกนเชิงเส้น (เฉพาะทหาร passive ไม่กี่ตัว) เลือกในระยะก่อน ไม่มีในระยะ fallback ใกล้สุด
+static func _acquire_target(units: Array, u: Dictionary, hash: SpatialHash) -> int:
+    var mode: int = u.target_mode
+    if mode == CardData.TargetMode.NEAREST:
+        return hash.nearest_enemy(units, u)
+    var team: int = u.team
+    var range2: float = u.attack_range * u.attack_range
+    var best := -1
+    var best_score := INF   # น้อย = ดีกว่า
+    var nearest := -1
+    var nearest_d := INF
+    for i in units.size():
+        var o: Dictionary = units[i]
+        if not o.alive or not o.targetable or o.team == team:
+            continue
+        var dx: float = o.x - u.x
+        var dy: float = o.y - u.y
+        var d2: float = dx * dx + dy * dy
+        if d2 < nearest_d:
+            nearest_d = d2
+            nearest = i
+        if d2 > range2:
+            continue   # นอกระยะ → ไม่เข้าเกณฑ์พิเศษ (แต่ยังเป็น fallback ใกล้สุดได้)
+        var score: float
+        if mode == CardData.TargetMode.LOWEST_HP:
+            score = o.hp
+        else:   # BACKLINE = รั้งท้ายฝั่งศัตรู (ทีม 0 ยิงขวา = x มากสุด, ทีม 1 = x น้อยสุด)
+            score = -o.x if team == 0 else o.x
+        if score < best_score:
+            best_score = score
+            best = i
+    return best if best != -1 else nearest
 
 
 ## ช่วงตั้งแถว: interpolate ทุกทหาร march_from → march_to ด้วย t เดียวกัน (ถึงพร้อมกันใน form_duration)

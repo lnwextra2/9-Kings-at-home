@@ -3,6 +3,8 @@ extends Resource
 ## แม่แบบการ์ด (shared, read-only) — เพิ่มการ์ด = เพิ่มไฟล์ .tres ไม่ใช่แก้โค้ด
 
 enum Kind { SOLDIER, BASE, BUILDING, TURRET, BUFF, TOME }
+## วิธีเลือกเป้า: NEAREST=ใกล้สุด (default), BACKLINE=รั้งท้ายในระยะ (sniper), LOWEST_HP=HP น้อยสุดในระยะ (executioner)
+enum TargetMode { NEAREST, BACKLINE, LOWEST_HP }
 
 @export_group("Identity")
 @export var id: StringName
@@ -21,6 +23,7 @@ enum Kind { SOLDIER, BASE, BUILDING, TURRET, BUFF, TOME }
 @export var move_speed: float = 60.0      # px/วินาที (0 = อยู่กับที่)
 @export var splash_radius: float = 0.0
 @export var crit: float = 0.0             # โอกาสคริติคอล 0..1 (คริ = ดาเมจ × crit_mult)
+@export var target_mode: TargetMode = TargetMode.NEAREST   # passive เลือกเป้า (sniper/executioner)
 
 @export_group("Scaling")
 @export var base_count: int = 1           # จำนวนทหารพื้นฐาน (soldier); count = base_count × level

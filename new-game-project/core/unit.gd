@@ -84,6 +84,7 @@ static func _blank(team: int, d: CardData, x: float, y: float) -> Dictionary:
         "is_wall": false,
         "attack_timer": 0.0,      # นับถอยหลังถึงตีครั้งถัดไป
         "target_id": -1,
+        "target_mode": d.target_mode,   # NEAREST/BACKLINE/LOWEST_HP (passive)
         "retarget_timer": 0.0,
         "attacking": false,       # ใช้ตอน render (เอียง 45°)
         "alive": true,
