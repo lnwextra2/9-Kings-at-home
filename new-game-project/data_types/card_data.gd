@@ -31,6 +31,7 @@ enum TargetMode { NEAREST, BACKLINE, LOWEST_HP }
 @export var warp_backline: bool = false   # true = เริ่มสู้วาร์ปไปโผล่หลังแนวศัตรู (ไม่ตั้งแถว) — goblin
 @export var double_buff_stacks: bool = false   # true = รับ ability stack จากการ์ด BUFF เป็น ×2 (stat/TOME เท่าเดิม) — crystal
 @export var gold_on_death: int = 0        # >0 = ทหารฝั่งเราตายในสนามให้ทองเท่านี้ ×level — goat
+@export var kamikaze: bool = false        # true = ถึงระยะประชิดแล้วระเบิดพลีชีพ (AoE=bomb_radius, dmg=attack) แล้วตาย — bomber
 @export var growth_hp: float = 0.3        # compound %: stat × (1+growth)^(lv-1)
 @export var growth_attack: float = 0.3
 @export var growth_attack_speed: float = 0.1

@@ -46,7 +46,10 @@
 - ✅ **goat (rainbow) — goldOnDeath**: `CardData.gold_on_death` (=3, ต่อ level) → bake `u.gold_on_death = ค่า×inst.level`
   ใน `Unit.from_instance` → `Combat._cleanup_deaths` ทหารฝั่งเราตาย +ทอง (ระหว่างสู้ ใช้ตอน planning ถัดไป)
   - ยังไม่มี popup ทองในสนาม (เพิ่มทีหลังได้)
-- ยังไม่ทำ: bomber (kamikaze) · protector (reflect) · boar/raptor (mount) · mob (addCount) · labrat (level-spread) · demon (summon)
+- ✅ **bomber (red) — kamikaze**: `CardData.kamikaze` + `bomb_radius` (=48) เป็นรัศมีระเบิด (ไม่ใช้ splash_radius กันชนกับ projectile)
+  ในสนามถึงระยะประชิด → `Combat._detonate` = `_damage_area(dmg=attack, r=bomb_radius)` แล้ว hp=0 (ตายเป็นศพ)
+  - ระเบิดเฉพาะตอนถึงเป้า (ถ้าโดนฆ่าก่อนไม่ระเบิด) — พอสำหรับตอนนี้
+- ยังไม่ทำ: protector (reflect) · boar/raptor (mount) · mob (addCount) · labrat (level-spread) · demon (summon)
 - tier-2 `on_death` hooks_script ยัง**ไม่ wire** (ตอนนี้ goat ใช้ data-flag พอ) — ถ้ามีกลไก death ซับซ้อนค่อย wire dispatch ใน `_cleanup_deaths`
 
 ## หมายเหตุ implement (คิดคร่าวๆ ไว้ทีหลัง)

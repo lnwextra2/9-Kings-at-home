@@ -52,7 +52,9 @@ static func tick(state: GameState, dt: float) -> void:
                 dy = t.y - u.y
                 dist = sqrt(dx * dx + dy * dy)
             if dist <= u.attack_range:
-                if u.attack > 0.0 and u.attack_timer <= 0.0:
+                if u.kamikaze:
+                    _detonate(state, cfg, i)   # พลีชีพ: ระเบิด AoE แล้วตาย
+                elif u.attack > 0.0 and u.attack_timer <= 0.0:
                     _do_attack(state, cfg, i, tid)
             else:
                 _move_toward(u, dx, dy, dist, dt)
@@ -186,6 +188,14 @@ static func _rush_base(state: GameState, cfg: BattleConfig, u: Dictionary, dt: f
         return true
     _move_toward(u, dx, dy, dist, dt)
     return false
+
+
+## พลีชีพ: ระเบิด AoE รอบตัว (dmg=attack, r=bomb_radius) แล้วตัวเองตาย (กลายเป็นศพใน _cleanup_deaths)
+static func _detonate(state: GameState, cfg: BattleConfig, i: int) -> void:
+    var u: Dictionary = state.units[i]
+    u.attacking = true
+    _damage_area(state, u.team, u.x, u.y, u.attack, maxf(u.bomb_radius, cfg.projectile_hit_radius))
+    u.hp = 0.0   # พลีชีพ — ตายทันที
 
 
 static func _do_attack(state: GameState, cfg: BattleConfig, i: int, tid: int) -> void:
