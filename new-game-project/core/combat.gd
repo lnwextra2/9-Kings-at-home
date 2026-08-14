@@ -434,7 +434,10 @@ static func _cleanup_deaths(state: GameState) -> void:
             u.alive = false
             if u.team == 1:
                 state.kills += 1
-            # on_death hooks = M3
+            elif u.gold_on_death > 0:        # goat: ทหารเราตายให้ทอง (×level baked แล้ว)
+                state.gold += u.gold_on_death
+                state.gold_earned += u.gold_on_death
+            # on_death hooks (tier-2 script) = ยังไม่ wire — ดู docs/passives_pending.md
 
 
 static func _check_end(state: GameState, touched_base: bool) -> void:

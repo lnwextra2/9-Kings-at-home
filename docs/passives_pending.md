@@ -42,6 +42,13 @@
 8. **crystal (คริสตัล)** — ได้ **stack ×2 จากการ์ดบัฟ** (พวกบัฟที่ให้ stack) — แต่บัฟ stat ตรงๆ ได้เท่าเดิมไม่เปลี่ยน
 9. **slime (สไลม์)** — จบเทิร์น **ก็อปปี้ตัวเองไปช่องว่างรอบตัว 1 ช่อง** (แนว + )
 
+## Group B — special soldiers (stat-only, กลไกทยอยทำ)
+- ✅ **goat (rainbow) — goldOnDeath**: `CardData.gold_on_death` (=3, ต่อ level) → bake `u.gold_on_death = ค่า×inst.level`
+  ใน `Unit.from_instance` → `Combat._cleanup_deaths` ทหารฝั่งเราตาย +ทอง (ระหว่างสู้ ใช้ตอน planning ถัดไป)
+  - ยังไม่มี popup ทองในสนาม (เพิ่มทีหลังได้)
+- ยังไม่ทำ: bomber (kamikaze) · protector (reflect) · boar/raptor (mount) · mob (addCount) · labrat (level-spread) · demon (summon)
+- tier-2 `on_death` hooks_script ยัง**ไม่ wire** (ตอนนี้ goat ใช้ data-flag พอ) — ถ้ามีกลไก death ซับซ้อนค่อย wire dispatch ใน `_cleanup_deaths`
+
 ## หมายเหตุ implement (คิดคร่าวๆ ไว้ทีหลัง)
 - 2,3,5 = ระบบ target/positioning ในสนามรบ (combat.gd)
 - 6,9 = END_TURN บนกระดาน (แต่เป็น per-card hook ไม่ใช่ EffectData ธรรมดา — 9 ต้องหาช่องว่างรอบตัว)

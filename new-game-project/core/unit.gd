@@ -16,6 +16,7 @@ static func from_instance(team: int, inst: Dictionary, x: float, y: float) -> Di
         u.shots = maxi(1, int(inst.cur_count))       # ป้อมยิงหลายเป้า: cur_count = จำนวนนัด/ครั้ง
     u.attack_cd = d.attack_cd / maxf(inst.cur_aspd, 0.01)   # aspd_mult ย่น cooldown
     u.move_speed = d.move_speed * float(inst.get(&"cur_move_mult", 1.0))   # บัฟ speed ถาวร (orc)
+    u.gold_on_death = d.gold_on_death * int(inst.get(&"level", 1))          # goat: ตายให้ทอง ×level
     if u.immobile and u.attack > 0.0:
         u.attack_range = 1.0e9   # ป้อม/ฐาน (อยู่กับที่ + โจมตี) = ยิงทั้งสนาม
     return u
@@ -91,6 +92,7 @@ static func _blank(team: int, d: CardData, x: float, y: float) -> Dictionary:
         "attack_timer": 0.0,      # นับถอยหลังถึงตีครั้งถัดไป
         "target_id": -1,
         "target_mode": d.target_mode,   # NEAREST/BACKLINE/LOWEST_HP (passive)
+        "gold_on_death": 0,             # ตายแล้วให้ทอง (goat) — bake จริงใน from_instance ×level
         "retarget_timer": 0.0,
         "attacking": false,       # ใช้ตอน render (เอียง 45°)
         "alive": true,
